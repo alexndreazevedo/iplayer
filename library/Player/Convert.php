@@ -117,7 +117,6 @@ class Player_Convert
                 } else {
                     
                     if (isset($current[$tag][0]) and is_array($current[$tag])) {
-                        
 
                         $current[$tag][$repeated_tag_index[$tag . '_' . $level]] = $result;
 
@@ -128,24 +127,6 @@ class Player_Convert
                         $current[$tag] = array($current[$tag], $result);
                         
                         $repeated_tag_index[$tag . '_' . $level] = 1;
-                        
-                        if ($get) {
-                            
-                            if (isset($current[$tag . '_attr'])) {
-                                
-                                $current[$tag]['0_attr'] = $current[$tag . '_attr'];
-                                
-                                unset($current[$tag . '_attr']);
-                                
-                            }
-
-                            if ($attributes_data) {
-                                
-                                $current[$tag][$repeated_tag_index[$tag . '_' . $level] . '_attr'] = $attributes_data;
-                                
-                            }
-                            
-                        }
                         
                         $repeated_tag_index[$tag . '_' . $level]++;
                         

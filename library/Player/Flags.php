@@ -127,6 +127,7 @@ class Player_Flags
 
         self::$_flag = array(
 
+
             'status'  => array(
 
                 'active'    => 'ativo',
@@ -188,9 +189,9 @@ class Player_Flags
                     'hash'      => 'hash',
                     'status'    => 'status',
                     'file'      => 'arquivo',
+                    'filename'  => 'arquivo',
                     'library'   => 'biblioteca',
-                    'filename'  => 'content',
-                    'feed'      => 'content',
+                    'xml'       => 'xml',
 
                 ),
 
@@ -200,39 +201,50 @@ class Player_Flags
 
                 'config'    => array(
 
-                    'file'      => self::getPath('config') . 'config.xml',
+                    'file'      => 'config.xml',
 
                 ),
 
                 'playlist'  => array(
 
-                    'file'      => self::getPath('config') . 'playlist.xml',
-                    'temp'      => self::getPath('config') . 'playlist.tmp.xml',
+                    'file'      => 'playlist.xml',
+                    'temp'      => 'playlist.tmp.xml',
 
                 ),
 
                 'loop'      => array(
 
-                    'file'      => self::getPath('config') . 'loop.xml',
-                    'temp'      => self::getPath('config') . 'loop.tmp.xml',
+                    'file'      => 'loop.xml',
+                    'temp'      => 'loop.tmp.xml',
 
                 ),
                 
             ),
+
 
             'label' => array(
 
                 'config'    => 'config',
                 'playlist'  => 'playlist',
                 'loop'      => 'loop',
+                'library'   => 'biblioteca',
                 'ftp'       => 'ftp',
+                'feed'      => 'feeds',
+
+            ),
+
+            'field' => array(
+
+                'image'         => 'imagem',
+                'description'   => 'descricao',
 
             ),
 
             'ftp' => array(
 
                 'host'      => 'host',
-                'path'      => 'path',
+                'file'      => 'file',
+                'feed'      => 'feed',
                 'user'      => 'user',
                 'pass'      => 'pass',
 
@@ -240,7 +252,7 @@ class Player_Flags
 
         );
         
-        self::$_flag = array_merge(self::$_flag, array('path' => self::$_path));
+        self::$_flag = array_merge(self::$_flag, array('path' => self::getPath()));
         
     }
     

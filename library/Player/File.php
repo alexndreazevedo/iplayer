@@ -37,6 +37,40 @@ class Player_File
     }
     
     /**
+     * Remove files in a directory.
+     *
+     * @param  string $filename null
+     * @return boolean
+     */
+    public static function removeFiles($params = array(), $path = null)
+    {
+
+        foreach ($params as $key => $value){
+        
+            self::unsetFile($path . $value);
+
+        }
+        
+    }
+    
+    /**
+     * Move files to directory.
+     *
+     * @param  string $filename null
+     * @return boolean
+     */
+    public static function moveFiles($params = array(), $local = null, $temp = null)
+    {
+
+        foreach ($params as $key => $value){
+        
+            self::moveFile($temp . $value, $local . $value, true);
+
+        }
+        
+    }
+    
+    /**
      * Read a file.
      *
      * @param  string $filename null
@@ -69,16 +103,24 @@ class Player_File
      * @param  string $overwrite false
      * @return boolean
      */
-    public static function setFile($filename = null, $params = null, $overwrite = false)
+    public static function setFile($filename = null, $params = null, $overwrite = false, $increment = false)
     {
         
-        if(file_exists($filename) && $overwrite == false){
+        if(file_exists($filename) && $overwrite == false && $increment == false){
                     
             return false;
             
         } else {
+            
+            if($increment){
 
-            $fopen = fopen($filename, 'w+');
+                $fopen = fopen($filename, 'a+');
+                
+            } else {
+
+                $fopen = fopen($filename, 'w+');
+                
+            }
             
             if($fopen){
 
@@ -96,6 +138,134 @@ class Player_File
                 
         }
         
+        return false;
+        
+    }
+    
+    /**
+     * Remove a file.
+     *
+     * @param  string $filename null
+     * @return boolean
+     */
+    public static function unsetFile($filename = null)
+    {
+        
+        if(file_exists($filename)){
+            
+            self::setPermissions($filename);
+                    
+            if(@unlink($filename)){
+                
+                return true;
+                
+            }
+            
+        }
+        
+        return false;
+        
+    }
+    
+    /**
+     * Check a directory.
+     *
+     * @param  string $dirname null
+     * @param  boolean $create false
+     * @param  mixed $options 0777
+     * @return boolean
+     */
+    public static function getDir($dirname = null, $create = false, $options = 0777)
+    {
+
+        if(is_dir($dirname)){
+            
+            if($create) {
+                
+                self::setDir($dirname, $options);
+                
+                return true;
+                
+            }
+                
+            return true;
+            
+        }
+        
+        return false;
+        
+    }
+    
+    /**
+     * Makes a directory.
+     *
+     * @param  string $dirname null
+     * @param  boolean $create false
+     * @param  mixed $options 0777
+     * @return boolean
+     */
+    public static function setDir($dirname = null, $options = 0777)
+    {
+
+        if(is_dir($dirname)){
+            
+            return true;
+            
+        } else {
+            
+            if(mkdir($dirname, $options)) {
+                
+                return true;
+                
+            }
+                
+        }
+        
+        return false;
+        
+    }
+    
+    /**
+     * Move a file.
+     *
+     * @param  string $filename null
+     * @param  string $params null
+     * @param  string $overwrite false
+     * @return boolean
+     */
+    public static function moveFile($filename = null, $params = null, $overwrite = false)
+    {
+        
+        if(file_exists($params) && $overwrite == false){
+            
+            return false;
+            
+        } else {
+            
+            if(!file_exists($filename)) {
+
+                return false;
+
+            } else {
+
+                self::setPermissions($params);
+
+                if(copy($filename, $params)){
+
+                    self::setPermissions($filename);
+                    
+                    if(self::unsetFile($filename)){
+                    
+                        return true;
+                        
+                    }
+
+                }
+                
+            }
+            
+        }
+
         return false;
         
     }

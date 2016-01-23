@@ -1,5 +1,8 @@
 <?php
 
+require_once 'Player/Flags.php';
+require_once 'Player/File.php';
+
 class Player_Connect_FTP
 {
     const FTP_TIMEOUT                   = 9;
@@ -31,7 +34,7 @@ class Player_Connect_FTP
     
     protected static function FTP() {}
 
-    protected static function connect($host, $port = 21, $timeout = FTP_TIMEOUT) {
+    protected static function connect($host, $port = 21, $timeout = self::FTP_TIMEOUT) {
         
         self::_resetError();
 
@@ -39,7 +42,7 @@ class Player_Connect_FTP
         
         $err_msg = '';
         
-        self::$controlSocket = @fsockopen($host, $port, $err_no, $err_msg, $timeout) or self::_setError(-1, 'fsockopen falhou');
+        self::$controlSocket = @fsockopen($host, $port, $err_no, $err_msg, $timeout) or self::_setError(-1, 'fsockopen failed');
         
         if ($err_no <> 0) {
             
@@ -53,7 +56,7 @@ class Player_Connect_FTP
             
         }
 
-        @socket_set_timeout(self::$controlSocket, $timeout) or self::_setError(-1, 'socket_set_timeout falhou');
+        @socket_set_timeout(self::$controlSocket, $timeout) or self::_setError(-1, 'socket_set_timeout failed');
         
         if (self::_isError()) {
             
@@ -69,7 +72,7 @@ class Player_Connect_FTP
             
         }
 
-        return self::getLastResult() == FTP_SERVICE_READY;
+        return self::getLastResult() == self::FTP_SERVICE_READY;
         
     }
 
@@ -117,7 +120,7 @@ class Player_Connect_FTP
             
         }
 
-        if (self::getLastResult() == FTP_PASSWORD_NEEDED){
+        if (self::getLastResult() == self::FTP_PASSWORD_NEEDED){
             
             self::_printCommand("PASS $pass");
             
@@ -137,7 +140,7 @@ class Player_Connect_FTP
             
         }
 
-        $result = self::getLastResult() == FTP_USER_LOGGED_IN;
+        $result = self::getLastResult() == self::FTP_USER_LOGGED_IN;
         
         return $result;
         
@@ -159,7 +162,7 @@ class Player_Connect_FTP
             
         }
         
-        return ($lr == FTP_FILE_ACTION_OK || $lr == FTP_COMMAND_OK);
+        return ($lr == self::FTP_FILE_ACTION_OK || $lr == self::FTP_COMMAND_OK);
         
     }
 
@@ -179,7 +182,7 @@ class Player_Connect_FTP
             
         }
         
-        return ($lr == FTP_FILE_ACTION_OK || $lr == FTP_COMMAND_OK);
+        return ($lr == self::FTP_FILE_ACTION_OK || $lr == self::FTP_COMMAND_OK);
         
     }
 
@@ -189,13 +192,13 @@ class Player_Connect_FTP
         
     }
 
-    protected static function fget($fp, $remote, $mode = FTP_BINARY, $resumepos = 0) {
+    protected static function fget($fp, $remote, $mode = self::FTP_BINARY, $resumepos = 0) {
         
         self::_resetError();
 
         $type = "I";
         
-        if ($mode == FTP_ASCII) {
+        if ($mode == self::FTP_ASCII) {
             
             $type = "A";
             
@@ -231,21 +234,21 @@ class Player_Connect_FTP
         
         switch ($option) {
             
-            case 'FTP_TIMEOUT_SEC' :
-                return FTP_TIMEOUT;
+            case 'self::FTP_TIMEOUT_SEC' :
+                return self::FTP_TIMEOUT;
                 
-            case 'PHP_FTP_OPT_AUTOSEEK' :
+            case 'PHP_self::FTP_OPT_AUTOSEEK' :
                 return false;
                 
         }
         
-        setError(-1, 'opcao desconhecida: ' . $option);
+        setError(-1, 'unknown option: ' . $option);
         
         return false;
         
     }
 
-    protected static function get($locale, $remote, $mode = FTP_BINARY, $resumepos = 0) {
+    protected static function get($locale, $remote, $mode = self::FTP_BINARY, $resumepos = 0) {
         
         if (!($fp = @fopen($locale, 'wb'))) {
             
@@ -305,7 +308,7 @@ class Player_Connect_FTP
         
     }
 
-    private function _hasNewResult() {
+    private static function _hasNewResult() {
         
         return self::$newResult;
         
@@ -321,13 +324,13 @@ class Player_Connect_FTP
         
     }
 
-    private function _readln() {
+    private static function _readln() {
         
         $line = fgets(self::$controlSocket);
         
         if ($line === false) {
             
-            self::_setError(-1, 'fgets falhou em _readln');
+            self::_setError(-1, 'fgets failed in _readln');
             
             return false;
             
@@ -339,15 +342,15 @@ class Player_Connect_FTP
             
         }
 
-        $lucifer = array();
+        $patch = array();
         
-        if (preg_match("/^[0-9][0-9][0-9] /", $line, $lucifer)) {
+        if (preg_match("/^[0-9][0-9][0-9] /", $line, $patch)) {
             
-            self::$lastResult = intval($lucifer[0]);
+            self::$lastResult = intval($patch[0]);
             
             self::$newResult = true;
             
-            if (substr($lucifer[0], 0, 1) == '5') {
+            if (substr($patch[0], 0, 1) == '5') {
                 
                 self::_setError(self::$lastResult, trim(substr($line, 4)));
                 
@@ -361,7 +364,7 @@ class Player_Connect_FTP
         
     }
 
-    private function _printCommand($line) {
+    private static function _printCommand($line) {
 
         fwrite(self::$controlSocket, $line . "\r\n");
         
@@ -369,7 +372,7 @@ class Player_Connect_FTP
         
     }
 
-    private function _pasv() {
+    private static function _pasv() {
         
         self::_resetError();
         
@@ -385,7 +388,7 @@ class Player_Connect_FTP
             
         }
         
-        if ($lr!=FTP_PASSIVE_MODE) {
+        if ($lr!=self::FTP_PASSIVE_MODE) {
             
             return false;
             
@@ -393,21 +396,21 @@ class Player_Connect_FTP
         
         $subject = trim(substr(self::$lastLine, 4));
         
-        $lucifer = array();
+        $patch = array();
         
-        if (preg_match("/\\((\d{1,3}),(\d{1,3}),(\d{1,3}),(\d{1,3}),(\d{1,3}),(\d{1,3})\\)/", $subject, $lucifer)) {
+        if (preg_match("/\\((\d{1,3}),(\d{1,3}),(\d{1,3}),(\d{1,3}),(\d{1,3}),(\d{1,3})\\)/", $subject, $patch)) {
             
-            self::$pasvAddr = $lucifer;
+            self::$pasvAddr = $patch;
 
-            $host = sprintf("%d.%d.%d.%d", $lucifer[1], $lucifer[2], $lucifer[3], $lucifer[4]);
+            $host = sprintf("%d.%d.%d.%d", $patch[1], $patch[2], $patch[3], $patch[4]);
             
-            $port = $lucifer[5] * 256 + $lucifer[6];
+            $port = $patch[5] * 256 + $patch[6];
 
             $err_no = 0;
             
             $err_msg = '';
             
-            $passiveConnection = fsockopen($host, $port, $err_no, $err_msg, FTP_TIMEOUT);
+            $passiveConnection = fsockopen($host, $port, $err_no, $err_msg, self::FTP_TIMEOUT);
             
             if ($err_no != 0) {
                 
@@ -425,7 +428,7 @@ class Player_Connect_FTP
         
     }
 
-    private function _download($cmd) {
+    private static function _download($cmd) {
         
         if (!($passiveConnection = self::_pasv())) {
             
@@ -455,7 +458,7 @@ class Player_Connect_FTP
             
             $lr = self::getLastResult();
             
-            return ($lr == FTP_FILE_TRANSFER_OK) || ($lr == FTP_FILE_ACTION_OK) || ($lr == FTP_COMMAND_OK) ? $result : false;
+            return ($lr == self::FTP_FILE_TRANSFER_OK) || ($lr == self::FTP_FILE_ACTION_OK) || ($lr == self::FTP_COMMAND_OK) ? $result : false;
             
         } else {
             
@@ -467,7 +470,7 @@ class Player_Connect_FTP
         
     }
 
-    private function _resetError() {
+    private static function _resetError() {
         
         self::$error_no = null;
         
@@ -475,7 +478,7 @@ class Player_Connect_FTP
         
     }
 
-    private function _setError($no, $msg) {
+    private static function _setError($no, $msg) {
         
         if (is_array(self::$error_no)) {
             
@@ -499,113 +502,89 @@ class Player_Connect_FTP
         
     }
 
-    private function _isError() {
+    private static function _isError() {
         
         return (self::$error_no != null) && (self::$error_no !== 0);
         
     }
 
-    public function getMediaFTP($ftp_server, $ftp_user, $ftp_passwd, $server_file, $local_file, $file) {
+    public static function getMediaFTP($host, $user, $pass, $server, $local, $file, $hashing = false) {
         
-        require_once 'c:\\xampp\\htdocs\\player\\library\\Model\\FTP2.php';
+        $label = Player_Flags::getFlag('playlist','media');
         
-        $hash_type = 'sha1';
-
-        if (self::connect($ftp_server)) {
+        Player_File::setDir($local);
+        
+        if (self::connect($host)) {
             
-            if (self::login($ftp_user, $ftp_passwd)) {
+            if (self::login($user, $pass)) {
                 
-                $serverpath = explode('/', $server_file);
+                $hostpath = explode('/', $server);
                 
-                foreach ($serverpath as $value) {
+                foreach ($hostpath as $value) {
                     
                     self::chdir($value);
                     
                 }
                 
-                $arquivos_baixados = array();
+                $done = array();
                 
                 foreach ($file as $key => $value) {
                     
-                    if(!in_array($value['arquivo'], $arquivos_baixados)) {
+                    if(!in_array($value[$label['file']], $done)) {
+                            
+                        print $local . $value[$label['file']] . "\n";
 
                         do {
 
                             $result = true;
                             
-                            print "\n";
-                            print "\n" . 'Baixando arquivo remoto ' . $value['arquivo'];
-
-                            self::get($local_file . $value['arquivo'], $value['arquivo']);
-
-                            print "\n" . 'Resposta do FTP: ' . self::getLastResult();
+                            self::get($local . $value[$label['file']], $value[$label['file']]);
 
                             $log = self::getLastResult();
 
                             if(($log == 226) || ($log == 250) || ($log == 200)){
 
-                                print "\n" . 'Comparando hash entre ' . $value['arquivo'] . ' local e remoto.';
+                                if($hashing){
+                                    
+                                    $hash = Player_Encrypt::setHashFile($local . $value[$label['file']]);
 
-                                $hash = hash_file($hash_type, $local_file . $value['arquivo']);
+                                    if($value[$label['hash']] === $hash) {
 
-                                print "\n" . 'Validando download do arquivo ' . $value['arquivo'] . '.';
-                                print "\n" . 'Hashes equivalentes: ';
-                                print "\n" . "\t"  . '"' . $hash . '"';
-                                print "\n" . "\t"  . '"' . $value['hash'] . '"';
+                                        $result = false;
 
-                                if($value['hash'] === $hash) {
+                                        array_push($done, $value[$label['file']]);
 
-                                    print "\n" . 'Download do arquivo ' . $value['arquivo'] . ' finalizado com sucesso.';
+                                    }
+                                    
+                                } else {
 
                                     $result = false;
                                     
-                                    array_push($arquivos_baixados, $value['arquivo']);
-
-                                } else {
-
-                                    print "\n" . 'Hashes comparados diferentes.';
-
+                                    array_push($done, $value[$label['file']]);
+                                    
                                 }
 
                             }
+                            
+                            print $log . "\n";
 
                         } while($result);
                         
                     }
                     
                 }
-                    
-                print "\n";
                 
             } else {
                 
-                print "\n" . 'Falha no Login: ';
-                
-                print "\n";
-                
-                print_r(self::$error_no);
-                
-                print "\n";
-                
-                print_r(self::$error_msg);
+                print 'Login error.' . "\n";
                 
             }
                 
-            print "\n" . 'Desconectando do servidor.';
-            
             self::disconnect();
             
         } else {
             
-            print "\n" . 'Falha na conexao:';
-            
-            print "\n";
-            
-            print_r(self::$error_no);
-            
-            print "\n";
-            
-            print_r(self::$error_msg);
+            print 'Unable to connect to the server.' . "\n";
             
         }
         

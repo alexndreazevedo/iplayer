@@ -106,10 +106,10 @@ class Player_Connect
                 array(
 
                     CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_POST => true,
                     CURLOPT_POSTFIELDS => $params,
-                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_URL => $url,
 
                 )
 
@@ -120,6 +120,53 @@ class Player_Connect
             curl_close($curl);
             
             return utf8_encode($return);
+            
+        } else {
+            
+            return false;
+            
+        }
+
+    }
+    
+    /**
+     * Load a File from any server
+     * 
+     * Sets and gets the validation of the player
+     *
+     * @param  string $path null
+     * @param  array $params null
+     * @return array
+     */
+    public function loadFile($filename = null, $path = null, $overwrite = false) {
+        
+        if($this->checkConnection()) {
+            
+            $url = $path;
+            
+            $curl = curl_init();
+
+            curl_setopt_array($curl,
+
+                array(
+
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_URL => $url,
+
+                )
+
+            );
+
+            $return = curl_exec($curl);
+
+            curl_close($curl);
+            
+            if(Player_File::setFile($filename, $return, $overwrite)) {
+            
+                return true;
+                
+            }
             
         } else {
             

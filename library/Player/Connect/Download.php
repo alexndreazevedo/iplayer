@@ -3,6 +3,7 @@
 require_once 'Player/Connect.php';
 require_once 'Player/Connect/FTP.php';
 require_once 'Player/Convert.php';
+require_once 'Player/File.php';
 require_once 'Player/Encrypt.php';
 require_once 'Player/Flags.php';
 require_once 'Player/Utils.php';
@@ -24,9 +25,20 @@ class Player_Connect_Download extends Player_Connect
     
     protected $_files = array();
     
+    protected $_libraries = array();
+    
+    protected $_pictures = array();
+    
     protected $_debug = false;
 
     protected $_refresh = false;
+
+    /**
+     * Sets the timeout of running.
+     *
+     * @var integer
+     */
+    protected $_timeout = 0;
 
     public function __construct($environment = null, $options = null) {
         
@@ -48,27 +60,51 @@ class Player_Connect_Download extends Player_Connect
     
     public function run() {
         
+        $this->setTimeOut();
         $this->setConfig();
         $this->setPlaylist();
         $this->setLoop();
         $this->setMedias();
-        
         $this->setLibrary();
         $this->setPictures();
-        
-        $this->setFiles(
-            
-            array(
-                
-                'fotos',
-                'rssurl',
-                'arquivos'
-                
-            )
-
-        );
-
         $this->setUpdate();
+        
+    }
+
+    /**
+     * Sets timeout to script.
+     *
+     * @param  integer $time 0
+     * @return void
+     */
+    public function setTimeOut($time = 0)
+    {
+        
+        $this->_timeout = set_time_limit($time);
+        
+    }
+    
+    public function getRefresh()
+    {
+        
+        return $this->_refresh;
+        
+    }
+    
+    public function setRefresh($params = false)
+    {
+        
+        if($this->_refresh or $params){
+            
+            $this->_refresh = true;
+            
+        } else {
+            
+            $this->_refresh = false;
+            
+        }
+        
+        return $this->_refresh;
         
     }
     
@@ -94,13 +130,13 @@ class Player_Connect_Download extends Player_Connect
     
     public function getTab() {
         
-        if(php_sapi_name() == 'CLI'){
+        if(php_sapi_name() == 'cli'){
 
             return "\t";
             
         } else {
 
-            return '&nbsp;&nbsp;&nbsp;&nbsp;';
+            return '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
             
         }
         
@@ -118,9 +154,15 @@ class Player_Connect_Download extends Player_Connect
         
     }
     
-    public function saveLog() {
+    public function saveLog($filename) {
         
-        //@TODO
+        if(Player_File::setFile($filename, $this->getLog(), true, true)) {
+            
+            return true;
+            
+        }
+        
+        return false;
         
     }
     
@@ -172,7 +214,7 @@ class Player_Connect_Download extends Player_Connect
             
             if($this->getDebug()){
             
-                print $this->getLog() . $this->getBreakline();
+                echo $this->getLog() . $this->getBreakline();
                 
             }
 
@@ -180,7 +222,7 @@ class Player_Connect_Download extends Player_Connect
         
         if($this->getDebug()){
             
-            print $log . $this->getBreakline();
+            echo $log . $this->getBreakline();
             
         }
 
@@ -257,6 +299,7 @@ class Player_Connect_Download extends Player_Connect
         $player = Player_Flags::getFlag('player');
         $files  = Player_Flags::getFlag('files', 'playlist');
         $label  = Player_Flags::getFlag('label');
+        $path   = Player_Flags::getFlag('path');
         
         $file   = Player_File::getFile($this->getConfigFile());
         $xml    = Player_Convert::getXML($file, $label['config']);
@@ -273,26 +316,32 @@ class Player_Connect_Download extends Player_Connect
         
         if ($playlist){
             
-            Player_File::copyFile($files['file'], $files['temp'], true);
+            Player_File::copyFile($path['config'] . $files['file'], $path['config'] . $files['temp'], true);
             
             $this->setDebug('Creating playlist backup...');
             
-            if(Player_File::setFile($files['temp'], $playlist, true)){
+            if(Player_File::setFile($path['config'] . $files['temp'], $playlist, true)){
 
-                $this->setDebug('Verifying playlist\'s updates...');
+                $this->setDebug('Verifying playlist\' updates...');
 
-                $xml = Player_Encrypt::setHashFileContents($files['file']);
-                $tmp = Player_Encrypt::setHashFileContents($files['temp']);
+                $xml = Player_Encrypt::setHashFileContents($path['config'] . $files['file']);
+                $tmp = Player_Encrypt::setHashFileContents($path['config'] . $files['temp']);
 
                 if($xml !== $tmp){
 
-                    $this->setDebug('Updates:', 2);
+                    $this->setDebug('Updates:', 1);
 
-                    $this->setDebug('"' . $xml . '"', 4);
-                    $this->setDebug('"' . $tmp . '"', 4);
+                    $this->setDebug('"' . $xml . '"', 2);
+                    $this->setDebug('"' . $tmp . '"', 2);
 
-                    $this->_refresh = true;
+                    $this->setRefresh(true);
 
+                } else {
+
+                    $this->setDebug('No playlist updates.');
+                    
+                    $this->setRefresh(false);
+                    
                 }
 
                 $this->setDebug('Caching playlist...');
@@ -320,13 +369,14 @@ class Player_Connect_Download extends Player_Connect
         
         $playlist = $this->getPlaylist();
         
-        $media = Player_Flags::getFlag('playlist', 'media');
-        $files = Player_Flags::getFlag('files', 'loop');
-        $label = Player_Flags::getFlag('label');
+        $media  = Player_Flags::getFlag('playlist', 'media');
+        $files  = Player_Flags::getFlag('files', 'loop');
+        $label  = Player_Flags::getFlag('label');
+        $path   = Player_Flags::getFlag('path');
             
         $this->setDebug('Creating loop backup...');
 
-        Player_File::copyFile($files['file'], $files['temp'], true);
+        Player_File::copyFile($path['config'] . $files['file'], $path['config'] . $files['temp'], true);
             
         $this->setDebug('Processing loop...');
 
@@ -358,7 +408,7 @@ class Player_Connect_Download extends Player_Connect
         
         $xml = Player_Convert::setXML($label['loop'], $loop);
         
-        if(Player_File::setFile($files['temp'], $xml, true)){
+        if(Player_File::setFile($path['config'] . $files['temp'], $xml, true)){
         
             return $this->_loop = $loop;
             
@@ -400,29 +450,18 @@ class Player_Connect_Download extends Player_Connect
 
                 foreach ($value[$media['index']] as $k => $v) {
                     
-                    //@TODO EXCEPTION TO REMOVE
-
-                    if($v[$media['type']] == $media['library']) {
-
-                        $v[$media['filename']]  = 'tpl_noticias-terra.swf';
-                        $v[$media['hash']]      = '12338691ee42757942f38aeefdaa7cd5ac95926b';
-
-                    }
-
-                    //@TODO WILL STARTS FOREACH HERE
-
                     if (!in_array($v[$media['filename']], $this->getFiles())) {
-
+                        
                         if (file_exists($local . $v[$media['filename']])) {
 
                             $hash = Player_Encrypt::setHashFile($local . $v[$media['filename']]);
 
-                            if ($hash != $v[$media['hash']]) {
+                            if ($hash !== $v[$media['hash']]) {
 
-                                $this->setDebug('Currupter: "' . $v[$media['filename']] . '"', 2);
+                                $this->setDebug('Corrompido: "' . $v[$media['filename']] . '"', 1);
                                 
-                                $this->setDebug('"' . $hash . '"', 4);
-                                $this->setDebug('"' . $v[$media['hash']] . '"', 4);
+                                $this->setDebug('"' . $hash . '"', 2);
+                                $this->setDebug('"' . $v[$media['hash']] . '"', 2);
 
                                 Player_File::setPermissions($local . $v[$media['filename']]);
 
@@ -440,19 +479,49 @@ class Player_Connect_Download extends Player_Connect
                             }
 
                         } else {
+                            
+                            if (file_exists($temp . $v[$media['filename']])) {
 
-                            $this->setDebug('New: "' . $v[$media['filename']] . '"', 2);
+                                $hash = Player_Encrypt::setHashFile($temp . $v[$media['filename']]);
 
-                            array_push($download,
+                                if ($hash !== $v[$media['hash']]) {
 
-                                array(
+                                    $this->setDebug('Download corrompido: "' . $v[$media['filename']] . '"', 1);
 
-                                    $media['file']  => $v[$media['filename']],
-                                    $media['hash']  => $v[$media['hash']]
+                                    $this->setDebug('"' . $hash . '"', 2);
+                                    $this->setDebug('"' . $v[$media['hash']] . '"', 2);
 
-                                )
+                                    Player_File::setPermissions($temp . $v[$media['filename']]);
 
-                            );
+                                    array_push($download,
+
+                                        array(
+
+                                            $media['file']  => $v[$media['filename']],
+                                            $media['hash']  => $v[$media['hash']]
+
+                                        )
+
+                                    );
+                                    
+                                }
+
+                            } else {
+
+                                $this->setDebug('New: "' . $v[$media['filename']] . '"', 2);
+
+                                array_push($download,
+
+                                    array(
+
+                                        $media['file']  => $v[$media['filename']],
+                                        $media['hash']  => $v[$media['hash']]
+
+                                    )
+
+                                );
+
+                            }
 
                         }
 
@@ -466,36 +535,151 @@ class Player_Connect_Download extends Player_Connect
 
         }
         
-        $stored = Player_File::listFiles($local);
+        $refresh = (count($this->getFiles()) > 0) ? true : false;
+        
+        $this->setRefresh($refresh);
         
         $this->setDebug('Downloading files...');
         
-        Player_Connect_FTP::getFileFTP(
+        if(Player_Connect_FTP::getMediaFTP(
             
             $access[$ftp['host']], 
             $access[$ftp['user']], 
             $access[$ftp['pass']], 
-            $access[$ftp['path']], 
-            $local, 
-            $download
+            $access[$ftp['file']], 
+            $temp, 
+            $download,
+            true
             
-        );
+        )){
+
+            return true;
         
-        $return['alteracoes'] = (count($arquivos_locais) == 0) ? false : true;
+        }
         
-        return $return;
-        
+        return false;
+
     }
     
     public function setLibrary() {
         
-        //@TODO
+        $environment = $this->getEnvironment();
+        
+        $playlist = $this->getPlaylist();
+        
+        $media  = Player_Flags::getFlag('playlist', 'media');
+        $label  = Player_Flags::getFlag('label');
+        $path   = Player_Flags::getFlag('path');
+        $url    = Player_Flags::getFlag('url');
+        $ftp    = Player_Flags::getFlag('ftp');
+       
+        $this->setDebug('Accessing remote server...');
+        
+        $connect    = $this->loadConnection($environment, $url['access']);
+        $access     = Player_Convert::getXML($connect, $label['ftp']);
+        
+        $this->setDebug('Retrieving library files...');
+        
+        $local  = $path['library'];
+        $temp   = $path['library'] . $path['temp'];
+        
+        $download = array();
+
+        foreach ($playlist as $key => $value) {
+            
+            if(isset($value[$media['index']])){
+
+                foreach ($value[$media['index']] as $k => $v) {
+
+                    if($v[$media['type']] == $media['library']) {
+
+                        array_push($download, 
+                            
+                            array(
+                            
+                                $media['file'] => $v[$media['xml']]
+                            
+                            )
+                            
+                        );
+
+                        $this->setLibraries($v[$media['xml']]);
+
+                    }
+
+                }
+
+            }
+
+        }
+        
+        if(Player_Connect_FTP::getMediaFTP(
+            
+            $access[$ftp['host']], 
+            $access[$ftp['user']], 
+            $access[$ftp['pass']], 
+            $access[$ftp['feed']], 
+            $temp, 
+            $download
+            
+        )){
+            
+            return true;
+            
+        }
+
+        return false;
         
     }
     
     public function setPictures() {
 
-        //@TODO
+        $library = $this->getLibraries();
+        
+        $label  = Player_Flags::getFlag('label');
+        $path   = Player_Flags::getFlag('path');
+        $field  = Player_Flags::getFlag('field');
+        
+        foreach ($library as $key => $value){
+            
+            $lib = $path['library'] . $path['temp'];
+            
+            $file = Player_File::getFile($lib . $value);
+            
+            $feed = Player_Convert::getXML($file, $label['library']);
+            
+            foreach ($feed as $index => $image){
+                
+                if(is_array($image)) {
+                
+                    foreach ($image as $k => $v){
+
+                        if(isset($v[$field['image']])){
+            
+                            $local  = $path['picture'];
+                            $temp   = $path['picture'] . $path['temp'];
+                            
+                            $filename = substr($v[$field['image']], strrpos($v[$field['image']], '/') + 1);
+                            
+                            if(!file_exists($local . $filename)) {
+                            
+                                Player_File::setDir($temp);
+
+                                $this->loadFile($temp . $filename, $v[$field['image']], true);
+                                
+                            }
+
+                            $this->setPics($filename);
+
+                        }
+
+                    }
+                    
+                }
+                
+            }
+            
+        }
         
     }
     
@@ -510,14 +694,102 @@ class Player_Connect_Download extends Player_Connect
         $this->_files[] = $params;
         
     }
+    
+    public function getLibraries() {
         
+        return $this->_libraries;
+        
+    }
+    
+    public function setLibraries($params = null) {
+        
+        $this->_libraries[] = $params;
+        
+    }
+    
+    public function getPics() {
+        
+        return $this->_pictures;
+        
+    }
+    
+    public function setPics($params = null) {
+        
+        $this->_pictures[] = $params;
+        
+    }
+    
     public function setUpdate(){
+        
+        $file   = Player_Flags::getFlag('files', 'log');
+        
+        $label  = Player_Flags::getFlag('label');
+        $path   = Player_Flags::getFlag('path');
+        $field  = Player_Flags::getFlag('field');
+        $files  = Player_Flags::getFlag('files');
+        
+        $step = array(
+            
+            'media' => array(
+                    
+                'path'      => $path['media'],
+                'temp'      => $path['media'] . $path['temp'],
+                'files'     => $this->getFiles(),
+                
+            ),
+            
+            'library' => array(
+                
+                'path'      => $path['library'],
+                'temp'      => $path['library'] . $path['temp'],
+                'files'     => $this->getLibraries(),
+                
+            ),
+            
+            'picture' => array(
+                
+                'path'      => $path['picture'],
+                'temp'      => $path['picture'] . $path['temp'],
+                'files'     => $this->getpics(),
+                
+            ),
+            
+        );
 
-        if($this->_refresh){
-         
-            //@TODO
+        foreach ($step as $key => $value){
+
+            $local = Player_File::listFiles($value['path']);
+            
+            $return = array_diff($local, $value['files']);
+            
+            Player_File::removeFiles($return, $value['path']);
+            
+            Player_File::moveFiles($value['files'], $value['path'], $value['temp']);
+
+            $temp = Player_File::listFiles($value['temp']);
+            
+            Player_File::removeFiles($temp, $value['temp']);
             
         }
+        
+        if($this->getRefresh()){
+            
+            $refresh = array(
+                
+                'playlist',
+                'loop',
+                
+            );
+            
+            foreach ($refresh as $key => $value) {
+                
+                Player_File::moveFile($path['config'] . $value[$key]['file'], $path['config'] . $value[$key]['temp'], true);
+                
+            }
+            
+        }
+        
+        $this->saveLog($path['config'] . $file['file']);
         
         return false;
         

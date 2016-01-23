@@ -51,18 +51,18 @@ class Player_Application
     protected $_config = array();
 
     /**
-     * Sets the timeout of running.
-     *
-     * @var integer
-     */
-    protected $_timeout = 0;
-
-    /**
      * Options of the Player_Application class.
      *
      * @var array
      */
     protected $_options = array();
+
+    /**
+     * Instance of Player_Layout class.
+     *
+     * @var null
+     */
+    public $layout;
 
     /**
      * Player_Application class
@@ -110,7 +110,6 @@ class Player_Application
      */
     public function setConstruct($environment = null, $options = null) {
         
-        $this->setTimeOut();
         $this->_environment = (string) $environment;
 
         if ($options !== null) {
@@ -120,18 +119,7 @@ class Player_Application
             
         }
         
-    }
-
-    /**
-     * Sets timeout to script.
-     *
-     * @param  integer $time 0
-     * @return void
-     */
-    public function setTimeOut($time = 0)
-    {
-        
-        $this->_timeout = set_time_limit($time);
+        $this->layout = new Player_Layout($this->getOptions('layout'));
         
     }
 
@@ -140,8 +128,18 @@ class Player_Application
      *
      * @return array
      */
-    public function getOptions()
+    public function getOptions($params = null)
     {
+        
+        if($params != null) {
+        
+            if(isset($this->_options[$params])){
+
+                return $this->_options[$params];
+                
+            }
+            
+        }
         
         return $this->_options;
         
@@ -320,19 +318,43 @@ class Player_Application
      *
      * @return boolean
      */
-    public function setDownload()
+    public function setDownload($connection)
     {
+        
+        if($connection->checkConnection($this->getEnvironment())){
 
-        $download = new Player_Connect_Download($this->getEnvironment(), $this->getConfigFile());
-        
-        if($download->run()){
-        
-            $this->_download = true;
-            
+            if(isset($_GET['layout'])) {
+
+                if(!$_GET['layout'] == 'download') {
+
+                    Player_Utils::redirect('download');
+
+                }
+
+            } else  {
+                
+                $files  = Player_Flags::getFlag('files', 'download');
+                $path   = Player_Flags::getFlag('path');
+                
+                $filename = $path['config'] . $files['file'];
+                
+                $download = '"' . REAL_PATH . DIRECTORY_SEPARATOR . 'download.php"';
+                
+                $params = <<<HEREDOC
+@ECHO OFF
+START /MIN /HIGH php -f $download
+HEREDOC;
+                
+                Player_File::setFile($filename, $params, true);
+                
+                exec("$filename");
+                
+                Player_Utils::redirect('download');
+
+            }
+
         }
-        
-        return $this->_download;
-        
+
     }
     
     /**
@@ -345,6 +367,61 @@ class Player_Application
         
         return $this->_environment;
         
+    }
+    
+    /**
+     * Gets values of the flags from settings.
+     *
+     * @return boolean
+     */
+    public function setScreen()
+    {
+
+        if(isset($_GET['layout'])) {
+            
+            $this->layout->showLayout($_GET['layout']);
+            
+        }
+        
+    }
+    
+    /**
+     * Gets values of the flags from settings.
+     *
+     * @return boolean
+     */
+    public function setPlay()
+    {
+
+        if(isset($_GET['layout'])) {
+
+            if($_GET['layout'] == 'play'){
+                
+                $session    = new Player_Session('Player');
+        
+                $play       = new Player_Play($session);
+                
+                $flags  = Player_Flags::getFlag();
+                $media  = Player_Flags::getFlag('playlist', 'media');
+                $return = $play->run();
+                
+                $this->layout->flags    = $flags;
+                $this->layout->xml      = 'http://' . $_SERVER["HTTP_HOST"] . '/files/library/' . $return[$media['xml']];
+                $this->layout->media    = 'http://' . $_SERVER["HTTP_HOST"] . '/files/medias/' . $return[$media['filename']] . '?library=' . $this->layout->xml;
+                $this->layout->refresh  = $return[$media['duration']] . '; URL=http://' . $_SERVER["HTTP_HOST"] . '/play';
+
+            } else {
+
+                Player_Utils::redirect('play');
+
+            }
+
+        } else  {
+
+            Player_Utils::redirect('play');
+
+        }
+            
     }
     
     /**
@@ -386,15 +463,76 @@ class Player_Application
      */
     public function setInstall($connection, $validate)
     {
-        
-        if($this->__runInstall($connection, $validate)){
-            
-            return true;
+
+        $player     = Player_Flags::getFlag('player');
+        $user       = Player_Flags::getFlag('user');
+
+        $send = true;
+
+        if($connection->checkConnection($this->getEnvironment())){
+
+            if(isset($_GET['layout'])) {
+
+                if($_GET['layout'] == 'login'){
+
+                    if(isset($_POST)) {
+                        
+                        $post = array(
+                            
+                            'login',
+                            'password',
+                            
+                        );
+                        
+                        foreach ($post as $key => $value) {
+                            
+                            if(!isset($_POST[$value])) {
+                                
+                                $send = false;
+                                
+                            }
+                            
+                        }
+                        
+                        if($send){
+
+                            $params = array(
+
+                                $user['login']      => $_POST['login'],
+                                $user['password']   => $_POST['password'],
+                                $player['code']     => $validate->getActivation(),
+                                $player['status']   => 1
+
+                            );
+
+                            if($this->__runInstall($connection, $validate, $params)){
+
+                                Player_Utils::redirect();
+
+                            }
+
+                        }
+
+                    } else {
+
+                        Player_Utils::redirect('login');
+
+                    }
+
+                } else {
+
+                    Player_Utils::redirect('login');
+
+                }
+
+            } else  {
+
+                Player_Utils::redirect('login');
+
+            }
 
         }
-        
-        return false;
-        
+
     }
     
     /**
@@ -402,44 +540,38 @@ class Player_Application
      *
      * @return string
      */
-    private function __runInstall($connection, $validate)
+    private function __runInstall($connection, $validate, $params = null)
     {
         
         $url        = Player_Flags::getFlag('url');
         $status     = Player_Flags::getFlag('status');
         $player     = Player_Flags::getFlag('player');
-        $user       = Player_Flags::getFlag('user');
         $label      = Player_Flags::getFlag('label');
-
-        $params = array(
-
-            $user['login']      => 'multclick',
-            $user['password']   => 'q6k1LB',
-            $player['code']     => $validate->getActivation(),
-            $player['status']   => 1
-
-        );
 
         $login = $connection->loadConnection($this->getEnvironment(), $url['login'], $params);
 
         if($login){
             
-            Player_File::setFile($this->getConfigFile(), $login, true);
-            
             $xml = Player_Convert::getXML($login, $label['config']);
             
-            $params = array(
+            if(isset($xml[$player['id']])){
+            
+                Player_File::setFile($this->getConfigFile(), $login, true);
+            
+                $params = array(
 
-                $player['id']   =>$xml[$player['id']]
+                    $player['id']   => $xml[$player['id']]
 
-            );
+                );
 
-            $connection->loadConnection($this->getEnvironment(), $url['last'], $params);
+                $connection->loadConnection($this->getEnvironment(), $url['last'], $params);
 
-            if($xml[$status['active']]) {
+                if($xml[$status['active']]) {
 
-                return true;
+                    return true;
 
+                }
+                
             }
             
         }
