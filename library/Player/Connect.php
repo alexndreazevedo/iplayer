@@ -116,16 +116,25 @@ class Player_Connect
             );
 
             $return = curl_exec($curl);
+			
+			$error	= curl_errno($curl);
+			$code	= curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
             curl_close($curl);
-            
-            return utf8_encode($return);
-            
-        } else {
-            
-            return false;
+
+			if($error == 0){
+				
+				if($code < 400){
+			
+		            return utf8_encode($return);
+					
+				}
+				
+			}
             
         }
+            
+		return false;
 
     }
     
@@ -160,14 +169,32 @@ class Player_Connect
 
             $return = curl_exec($curl);
 
+			$error	= curl_errno($curl);
+			$code	= curl_getinfo($curl, CURLINFO_HTTP_CODE);
+			
+			$size	= curl_getinfo($curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+			$total	= curl_getinfo($curl, CURLINFO_SIZE_DOWNLOAD);
+
             curl_close($curl);
-            
-            if(Player_File::setFile($filename, $return, $overwrite)) {
-            
-                return true;
-                
-            }
-            
+
+			if($error == 0){
+				
+				if($code < 400){
+			
+					if($size === $total){
+						
+						if(Player_File::setFile($filename, $return, $overwrite)) {
+
+							return true;
+
+						}
+						
+					}
+
+				}
+
+			}
+
         } else {
             
             return false;

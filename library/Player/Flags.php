@@ -150,7 +150,7 @@ class Player_Flags
                 'config'    => 'config',
                 'last'      => 'ultimoacesso',
                 'playlist'  => 'playlist',
-                'access'     => 'dadosftp',
+                'access'    => 'dadosftp',
 
             ),
 

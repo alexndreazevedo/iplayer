@@ -5,7 +5,7 @@ require_once 'Player/Debug.php';
 
 class Player_Connect_FTP
 {
-    const FTP_TIMEOUT                   = 9;
+    const FTP_TIMEOUT                   = 10;
     const FTP_COMMAND_OK                = 200;
     const FTP_FILE_ACTION_OK            = 250;
     const FTP_FILE_TRANSFER_OK          = 226;
@@ -46,7 +46,7 @@ class Player_Connect_FTP
         
         if ($err_no <> 0) {
             
-            self::setError($err_no, $err_msg);
+            self::_setError($err_no, $err_msg);
             
         }
 
@@ -242,7 +242,7 @@ class Player_Connect_FTP
                 
         }
         
-        setError(-1, 'unknown option: ' . $option);
+        self::_setError(-1, 'unknown option: ' . $option);
         
         return false;
         
@@ -410,7 +410,7 @@ class Player_Connect_FTP
             
             $err_msg = '';
             
-            $passiveConnection = fsockopen($host, $port, $err_no, $err_msg, self::FTP_TIMEOUT);
+            $passiveConnection = @fsockopen($host, $port, $err_no, $err_msg, self::FTP_TIMEOUT);
             
             if ($err_no != 0) {
                 
@@ -513,31 +513,27 @@ class Player_Connect_FTP
         $label = Player_Flags::getFlag('playlist','media');
         
         Player_File::setDir($local);
-        
-        if (self::connect($host)) {
-            
-            if (self::login($user, $pass)) {
-                
-                $hostpath = explode('/', $server);
-                
-                foreach ($hostpath as $value) {
-                    
-                    self::chdir($value);
-                    
-                }
-                
-                $done = array();
-				
-				foreach ($file as $key => $value) {
+
+		$done = array();
+
+		foreach ($file as $key => $value) {
+
+			if (self::connect($host)) {
+
+				if (self::login($user, $pass)) {
+
+					$hostpath = explode('/', $server);
+
+					foreach ($hostpath as $dir) {
+
+						self::chdir($dir);
+
+					}
                     
                     if(!in_array($value[$label['file']], $done)) {
                         
                         $i = 1;
 						
-						$status = (count($done) + 1) . ' de ' . count($file);
-
-						Player_Debug::setStatus(false, $status);
-
                         do {
         
                             Player_Debug::setDebug($value[$label['file']], 1);
@@ -548,7 +544,7 @@ class Player_Connect_FTP
 
                             $log = self::getLastResult();
 
-                            if(($log == 226) || ($log == 250) || ($log == 200)){
+                            if(($log == self::FTP_COMMAND_OK) || ($log == self::FTP_FILE_ACTION_OK) || ($log == self::FTP_FILE_TRANSFER_OK) || ($log == self::FTP_PASSIVE_MODE)){
 
                                 if($hashing){
                                     
@@ -569,11 +565,21 @@ class Player_Connect_FTP
                                     array_push($done, $value[$label['file']]);
                                     
                                 }
+								
+					            self::disconnect();
 
                             } else {
                                 
                                 Player_Debug::setDebug('Error downloading ' . $value[$label['file']] . '. Trying again.', 2);
-                                Player_Debug::setDebug('Fail: ' . $i++, 3);
+                                Player_Debug::setDebug('Fail: ' . $i++ . '; Log: ' . $log, 3);
+								
+								if($i > 5){
+
+									Player_Debug::setDebug('Canceling download after ' . $i++ . ' failed tries.' .Player_Debug::getTab() .  '"' . $value[$label['file']] . '"', 1);
+									
+									return false;
+									
+								}
 
                             }
                             
@@ -583,11 +589,21 @@ class Player_Connect_FTP
                     
                 }
                 
-            }
-                
-            self::disconnect();
+	            self::disconnect();
+				
+            } else {
+				
+				return false;
+				
+			}
             
         }
+		
+		if(count($done) == count($file)) {
+			
+			return true;
+			
+		}		
         
     }
     

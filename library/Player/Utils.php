@@ -63,6 +63,30 @@ class Player_Utils
         return $return;
         
     }
+	
+	public static function setSwitch($bool = null, $true = null, $false = null){
+		
+        if(is_bool($bool)) {
+
+			if($bool) {
+				
+				return $false;
+				
+			} else {
+				
+				return $true;
+				
+			}
+
+        } else {
+            
+            return ($bool) ? $false : $true;
+            
+        }
+        
+        return $false;
+		
+	}
     
     public static function getSeparator($params = null, $options = null) {
         

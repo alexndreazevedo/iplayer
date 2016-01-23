@@ -36,7 +36,6 @@ class Player extends Player_Application
                 $this->layout->refresh  = 5;
                 $this->layout->msg		= $status['msg'];
                 $this->layout->status   = $status['status'];
-                $this->layout->code     = $activation;
                 
             }
             

@@ -317,7 +317,7 @@ HEREDOC;
 
                         $shell->Run($filename, 0, false);
 						
-						Player_Debug::setStatus('Starting download...', '', false, true);
+						Player_Debug::setStatus('Starting download...', false, false, true);
                         
                         $session->setSession('download', 1);
 
@@ -403,7 +403,7 @@ HEREDOC;
 					if($return[$media['type']] == $media['library']) {
 
 						$params =   '?library=' . $server . $path['library'] . $return[$media['xml']] . 
-                                    '&picture=' . $server . $path['picture'];
+									'&picture=' . $server . $path['picture'];
 
 					}
 
@@ -556,18 +556,6 @@ HEREDOC;
         if($login){
             
             $xml = Player_Convert::getXML($login, $label['config']);
-            
-            if(isset($xml[$player['id']])){
-
-                $params = array(
-
-                    $player['id']   => $xml[$player['id']]
-
-                );
-
-                $connection->loadConnection($this->getEnvironment(), $url['last'], $params);
-
-            }
 
             if(isset($xml[$status['active']])){
 
