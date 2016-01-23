@@ -12,9 +12,9 @@ define('APP_ENVIRONMENT', (file_exists(CONFIG_PATH . DIRECTORY_SEPARATOR . '.env
 
 set_include_path(implode(PATH_SEPARATOR, array(realpath(REAL_PATH . DIRECTORY_SEPARATOR . 'library'), get_include_path())));
 
-require_once 'Player.php';
+require_once 'Player/Connect/Download.php';
 
-$player = new Player(
+$download = new Player_Connect_Download(
     
     APP_ENVIRONMENT,
     CONFIG_PATH . DIRECTORY_SEPARATOR . 'config.xml'
@@ -27,10 +27,10 @@ error_reporting(E_ALL|E_STRICT);
 
 try {
     
-    $player->run();
+    $download->run();
     
 } catch (Exception $exception) {
     
-    print 'Não foi possível carregar os módulos do sistema.';
+    print 'Unable to load modules.';
     
 }

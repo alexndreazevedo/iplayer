@@ -18,6 +18,13 @@ class Player_Connect
     /**
      * Subdomain of server name.
      *
+     * @var string 'test'
+     */
+    protected $_developmentserver = 'test';
+
+    /**
+     * Subdomain of server name.
+     *
      * @var string 'api'
      */
     protected $_subdomain = 'api';
@@ -48,19 +55,21 @@ class Player_Connect
      * 
      * @return boolean
      */
-    public function checkConnection() {
+    public function checkConnection($environment = null) {
         
-        if (!@fsockopen($this->_domain, $this->_port, $errno, $errstr, 5)) {
+        if($environment == 'development') {
             
-            $return = false;
-            
-        } else {
-            
-            $return = true;
+            $this->_subdomain = $this->_developmentserver;
             
         }
         
-        return $return;
+        if (@fsockopen($this->_subdomain . '.' . $this->_domain, $this->_port, $errno, $errstr, 5)) {
+            
+            return true;
+            
+        }
+        
+        return false;
         
     }
     
@@ -69,15 +78,16 @@ class Player_Connect
      * 
      * Sets and gets the validation of the player
      *
+     * @param  string $environment null
      * @param  string $path null
      * @param  array $params null
      * @return array
      */
     public function loadConnection($environment = null, $path = null, $params = null) {
-
+        
         if($environment == 'development') {
             
-            $this->_subdomain = 'test';
+            $this->_subdomain = $this->_developmentserver;
             
         }
         
@@ -109,20 +119,7 @@ class Player_Connect
 
             curl_close($curl);
             
-            $json = new Player_Convert;
-
-            $return = $json->getJson($return);
-            $return = $json->toArray($return);
-            
-            foreach ($return as $key => $value) {
-
-                $i = ($path == 'login') ? 'dev' : $key;
-
-                $return[$i] = $value;
-
-            }
-
-            return $return;
+            return utf8_encode($return);
             
         } else {
             

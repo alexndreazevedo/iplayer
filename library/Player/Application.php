@@ -30,11 +30,11 @@ class Player_Application
     protected $_session = array();
 
     /**
-     * Validate the access to server.
+     * Validate the first download.
      *
      * @var boolean
      */
-    protected $_access = false;
+    protected $_download = false;
 
     /**
      * Install player options.
@@ -49,13 +49,6 @@ class Player_Application
      * @var array
      */
     protected $_config = array();
-
-    /**
-     * Flags the activation, install and playing mode.
-     *
-     * @var array
-     */
-    protected $_flag = array();
 
     /**
      * Sets the timeout of running.
@@ -126,64 +119,6 @@ class Player_Application
             $this->setConfig();
             
         }
-        
-        $this->setFlag(
-            
-            array(
-                
-                'status'  => array(
-                    
-                    'active'    => 'ativo',
-                    'run'       => 'inicializa',
-                    'download'  => 'fimciclo',
-                    
-                ),
-                
-                'url'  => array(
-                    
-                    'login'     => 'login',
-                    'config'    => 'config',
-                    'access'    => 'ultimoacesso',
-                    
-                ),
-                
-                'player'  => array(
-                    
-                    'id'        => 'idplayer',
-                    'name'      => 'nome',
-                    'screen'    => 'player',
-                    'sector'    => 'idponto',
-                    'code'      => 'senhaAc',
-                    'status'    => 'configurado',
-                    
-                ),
-                
-                'user'  => array(
-                    
-                    'id'        => 'cliente',
-                    'login'     => 'login',
-                    'password'  => 'senha',
-                    'name'      => 'nomecliente',
-                    'category'  => 'segmento',
-                    'sector'    => 'idponto',
-                    
-                ),
-                
-                'settings'  => array(
-                    
-                    'start'     => 'hrentradaplayer',
-                    'end'       => 'hrsaidaplayer',
-                    'width'     => 'resolucaolar',
-                    'height'    => 'resolucaoalt',
-                    'duration'  => 'tempoloop',
-                    'off'       => 'deslautomaticoplayer',
-                    'status'    => 'inativar',
-                    
-                ),
-                
-            )
-            
-        );
         
     }
 
@@ -271,9 +206,11 @@ class Player_Application
     public function getConfigFile()
     {
         
-        if(isset($this->_options['file'])) {
+        $file = $this->_options;
         
-            return $this->_options['file'];
+        if(isset($file['file'])) {
+        
+            return $file['file'];
             
         } else {
             
@@ -304,13 +241,16 @@ class Player_Application
     public function setConfig()
     {
         
-        $filename = $this->getConfigFile();
+        $filename   = $this->getConfigFile();
+        $label      = Player_Flags::getFlag('label');
         
         if($filename != null) {
 
             if(file_exists($filename)){
+                
+                $file = Player_File::getFile($filename);
 
-                $this->_config = Player_Convert::getIni($filename);
+                $this->_config = Player_Convert::getXML($file, $label['config']);
 
             }
 
@@ -344,32 +284,54 @@ class Player_Application
     }
     
     /**
-     * Gets if the access to server is allow.
+     * Gets if the first download is done.
      *
      * @return boolean
      */
-    public function getAcess()
+    public function getDownload()
     {
         
-        return $this->_access;
+        $config = $this->getConfig();
+        
+        $flag = Player_Flags::getFlag('status', 'download');
+
+        if(isset($config[$flag])){
+            
+            if($config[$flag]){
+            
+                return $this->_download = true;
+                
+            } else {
+            
+                return $this->_download = false;
+                
+            }
+            
+        } else {
+            
+            return $this->_download = false;
+            
+        }
         
     }
     
     /**
-     * Checks and set the access to server.
+     * Sets the first download to done.
      *
      * @return boolean
      */
-    public function setAcess()
+    public function setDownload()
     {
+
+        $download = new Player_Connect_Download($this->getEnvironment(), $this->getConfigFile());
         
-        $status = new Player_Validate();
+        if($download->run()){
         
-        if($status->getValidate()){
-            
-            return $this->_access = true;
+            $this->_download = true;
             
         }
+        
+        return $this->_download;
         
     }
     
@@ -386,50 +348,6 @@ class Player_Application
     }
     
     /**
-     * Gets flags.
-     *
-     * @param  string $flag null
-     * @param  string $sub null
-     * @return string
-     */
-    public function getFlag($flag = null, $sub = null)
-    {
-        
-        if(isset($this->_flag[$flag])) {
-        
-            if(isset($this->_flag[$flag][$sub])) {
-            
-                return $this->_flag[$flag][$sub];
-                
-            } else {
-            
-                return $this->_flag[$flag];
-                
-            }
-            
-            
-        } else {
-        
-            return false;
-            
-        }
-        
-    }
-    
-    /**
-     * Sets flags.
-     *
-     * @param  array $flags array
-     * @return array
-     */
-    public function setFlag($flags = array())
-    {
-        
-        return $this->_flag = $flags;
-        
-    }
-    
-    /**
      * Gets values of the flags from settings.
      *
      * @return boolean
@@ -439,7 +357,7 @@ class Player_Application
         
         $config = $this->getConfig();
         
-        $flag = $this->getFlag('status', 'active');
+        $flag = Player_Flags::getFlag('status', 'active');
 
         if(isset($config[$flag])){
             
@@ -469,20 +387,13 @@ class Player_Application
     public function setInstall($connection, $validate)
     {
         
-        $url        = $this->getFlag('url');
-        $status     = $this->getFlag('status');
-        $player     = $this->getFlag('player');
-        $user       = $this->getFlag('user');
-        
-        if($this->__runInstall($connection, $validate, $url, $status, $player, $user)){
+        if($this->__runInstall($connection, $validate)){
             
             return true;
 
-        } else {
-            
-            return false;
-            
         }
+        
+        return false;
         
     }
     
@@ -491,13 +402,19 @@ class Player_Application
      *
      * @return string
      */
-    private function __runInstall($connection, $validate, $url, $status, $player, $user)
+    private function __runInstall($connection, $validate)
     {
+        
+        $url        = Player_Flags::getFlag('url');
+        $status     = Player_Flags::getFlag('status');
+        $player     = Player_Flags::getFlag('player');
+        $user       = Player_Flags::getFlag('user');
+        $label      = Player_Flags::getFlag('label');
 
         $params = array(
 
-            $user['login']      => '',
-            $user['password']   => '',
+            $user['login']      => 'multclick',
+            $user['password']   => 'q6k1LB',
             $player['code']     => $validate->getActivation(),
             $player['status']   => 1
 
@@ -505,27 +422,30 @@ class Player_Application
 
         $login = $connection->loadConnection($this->getEnvironment(), $url['login'], $params);
 
-        $ini = Player_Convert::setIni($login, $this->getConfigFile(), true);
-
-        $params = array(
-
-            $player['id']   =>$ini[$player['id']]
-
-        );
-
-        $access = $connection->loadConnection($this->getEnvironment(), $url['access'], $params);
-        
-        if($ini[$status['active']]) {
+        if($login){
             
-            return true;
-
-        } else {
+            Player_File::setFile($this->getConfigFile(), $login, true);
             
-            return false;
+            $xml = Player_Convert::getXML($login, $label['config']);
+            
+            $params = array(
+
+                $player['id']   =>$xml[$player['id']]
+
+            );
+
+            $connection->loadConnection($this->getEnvironment(), $url['last'], $params);
+
+            if($xml[$status['active']]) {
+
+                return true;
+
+            }
             
         }
         
+        return false;
+        
     }
-
     
 }

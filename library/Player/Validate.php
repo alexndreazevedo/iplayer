@@ -63,26 +63,15 @@ class Player_Validate
         
         if(!$this->_activation) {
             
-            if (!file_exists($this->_filename)) {
+            $activation = Player_File::getFile($this->_filename);
+            
+            if($activation) {
 
-                $this->setActivation();
+                $this->_activation = $activation;
 
             } else {
-
-                $fopen = fopen($this->_filename, 'r');
-
-                if ($fopen) {
-
-                    while (!feof($fopen)) {
-
-                        $fgets = fgets($fopen);
-                        $pass = $fgets;
-                    }
-
-                    fclose($fopen);
-                }
-
-                $this->_activation = $pass;
+                
+                $this->setActivation();
 
             }
             
@@ -99,14 +88,13 @@ class Player_Validate
      */
     public function setActivation() {
 
-        $pass = $this->_setCode();
+        $code = $this->_setCode();
+        
+        $activation = Player_Convert::setFile($this->_filename, $code);
 
-        $fopen = fopen($this->_filename, 'w+');
-
-        fwrite($fopen, $pass);
-        fclose($fopen);
-
-        return $this->_activation = $pass;
+        $this->_activation = $activation;
+            
+        return $this->_activation;
         
     }
 
