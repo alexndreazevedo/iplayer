@@ -1,6 +1,7 @@
 <?php
 
 require_once 'Player/Connect.php';
+require_once 'Player/Connect/Proxy.php';
 require_once 'Player/Connect/FTP.php';
 require_once 'Player/Convert.php';
 require_once 'Player/File.php';
@@ -296,13 +297,13 @@ class Player_Connect_Download extends Player_Connect
 
                 } else {
 
-                    Player_Debug::setDebug('No playlist updates.');
+                    Player_Debug::setDebug('No playlist updates.', 1);
                     
                     $this->setRefresh(false);
                     
                 }
 
-                Player_Debug::setDebug('Caching playlist...');
+                Player_Debug::setDebug('Caching playlist...', 1);
                 
                 $playlist = Player_Convert::getXML($playlist, $label['playlist']);
 

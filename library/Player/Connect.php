@@ -49,6 +49,28 @@ class Player_Connect
      * @var string ''
      */
     protected $_path = '';
+
+    /**
+     * Player_Application class
+     * 
+     * Install and play the player
+     *
+     * @param  string $environment null
+     * @param  array $options null
+     * @return void
+     */
+    public function __construct($options = null)
+    {
+        
+        if ($options !== null) {
+
+            $proxy = new Player_Connect_Proxy;
+            
+            $proxy::setProxy($options);
+            
+        }
+        
+    }
     
     /**
      * Check the connection to server
@@ -101,9 +123,7 @@ class Player_Connect
             
             $curl = curl_init();
 
-            curl_setopt_array($curl,
-
-                array(
+            $options = array(
 
                     CURLOPT_SSL_VERIFYPEER => false,
                     CURLOPT_RETURNTRANSFER => true,
@@ -111,9 +131,19 @@ class Player_Connect
                     CURLOPT_POSTFIELDS => $params,
                     CURLOPT_URL => $url,
 
-                )
-
             );
+            
+            $proxy = new Player_Connect_Proxy;
+            
+            if(is_array($proxy::getProxy())) {
+            
+                $options[CURLOPT_HTTPPROXYTUNNEL]   = true;
+                $options[CURLOPT_PROXY]             = $proxy::$server;
+                $options[CURLOPT_PROXYPORT]         = $proxy::$port;
+
+            }
+                        
+            curl_setopt_array($curl, $options);
 
             $return = curl_exec($curl);
 			
@@ -154,18 +184,26 @@ class Player_Connect
             $url = $path;
             
             $curl = curl_init();
+            
+            $options = array(
 
-            curl_setopt_array($curl,
-
-                array(
-
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_URL => $url,
-
-                )
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_URL => $url,
 
             );
+            
+            $proxy = new Player_Connect_Proxy;
+            
+            if(is_array($proxy::getProxy())) {
+            
+                $options[CURLOPT_HTTPPROXYTUNNEL]   = true;
+                $options[CURLOPT_PROXY]             = $proxy::$server;
+                $options[CURLOPT_PROXYPORT]         = $proxy::$port;
+
+            }
+
+            curl_setopt_array($curl, $options);
 
             $return = curl_exec($curl);
 

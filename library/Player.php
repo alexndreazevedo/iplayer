@@ -16,7 +16,11 @@ class Player extends Player_Application
     public function run()
     {
     
-        $connection = new Player_Connect();
+        $options = $this->getOptions();
+        
+        $proxy = (isset($options['proxy']) ? $options['proxy'] : null);
+        
+        $connection = new Player_Connect($proxy);
         $validate = new Player_Validate();
             
         $activation = $validate->getActivation();

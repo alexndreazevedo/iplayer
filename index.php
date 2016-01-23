@@ -2,15 +2,7 @@
 
 header('Content-Type: text/html; charset=utf-8');
 
-define('REAL_PATH', realpath(dirname(__FILE__)));
-
-define('CONFIG_PATH', realpath(REAL_PATH . DIRECTORY_SEPARATOR . 'config'));
-
-define('LAYOUT_PATH', realpath(REAL_PATH . DIRECTORY_SEPARATOR . 'layout'));
-
-define('FILES_PATH', realpath(REAL_PATH . DIRECTORY_SEPARATOR . 'files'));
-
-define('APP_ENVIRONMENT', (file_exists(CONFIG_PATH . DIRECTORY_SEPARATOR . '.environment') ? 'development' : 'production'));
+require_once 'config.php';
 
 set_include_path(implode(PATH_SEPARATOR, array(realpath(REAL_PATH . DIRECTORY_SEPARATOR . 'library'), get_include_path())));
 
@@ -21,6 +13,7 @@ $player = new Player(
     APP_ENVIRONMENT,
     array(
 
+        'proxy'     => $proxy,
         'file'      => CONFIG_PATH . DIRECTORY_SEPARATOR . 'config.xml',
         'layout'    => LAYOUT_PATH . DIRECTORY_SEPARATOR,
         

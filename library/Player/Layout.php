@@ -20,13 +20,13 @@ class Player_Layout
         
         if($base == null){
             
-            $this->base = 'http://' . $_SERVER['SERVER_NAME'] . '/layout/';
+            $this->base = 'http://' . SERVER . '/layout/';
             
         }
         
         if($root == null){
             
-            $this->root = 'http://' . $_SERVER['SERVER_NAME'] . '/files/medias/';
+            $this->root = 'http://' . SERVER . '/files/medias/';
             
         }
         

@@ -163,7 +163,7 @@ class Player_Application
 
             foreach ($options as $key => $value) {
 
-                if (is_array($value)) {
+                if (is_array($value) && $level <= 4) {
 
                     $return[$key] = $this->setOptions($options, $level);
 
