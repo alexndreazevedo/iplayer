@@ -11,7 +11,7 @@ class Player_Application
     
     protected $_session = array();
     
-    protected $_access = array();
+    protected $_access = false;
     
     protected $_install = array();
         
@@ -51,13 +51,13 @@ class Player_Application
     public function run()
     {
         
-        $status = new Player_Validate();
-        
-        if($status->getValidate()){
+        if(!$this->getAcess()){
             
-            //@TODO
+           $this->setAcess(); 
             
         }
+
+        //@TODO
         
     }
 
@@ -103,7 +103,7 @@ class Player_Application
         
         if(file_exists($configs)){
         
-            $this->_config = parse_ini_file($configs);
+            $this->_config = Player_Convert::getIni($configs);
             
         }
         
@@ -121,17 +121,6 @@ class Player_Application
         
         // @TODO
         
-        session_start();
-
-        if(isset($_SESSION['views'])) {
-            
-            $_SESSION['views'] = $_SESSION['views']+1;
-        } else {
-            
-            $_SESSION['views'] = 1;
-            echo "Views=". $_SESSION['views'];
-        }
-        
     }
     
     public function getSession()
@@ -144,14 +133,20 @@ class Player_Application
     public function setAcess()
     {
         
-        return $this->_access;
+        $status = new Player_Validate();
+        
+        if($status->getValidate()){
+            
+            return $this->_access = true;
+            
+        }
         
     }
     
     public function getAcess()
     {
         
-        // @TODO
+        return $this->_access;
         
     }
     
