@@ -15,75 +15,49 @@ class Player extends Player_Application
     
     public function run()
     {
-        
-        ob_start();
-                
-        print 'begin' . "<br />";
 
         $connection = new Player_Connect();
         
         if($this->getInstall()){
-                
-            print 'active' . "<br />";
             
             if($this->getDownload()){
                 
-                print 'play' . "<br />";
-                
-                //@TODO
-
+                $this->setPlay();
 
             } else {
-                
-                print 'download' . "<br />";
 
-                if($connection->checkConnection($this->getEnvironment())){
+                $this->setDownload($connection);
                 
-                    print 'connected' . "<br />";
+                $path   = Player_Flags::getFlag('path');
+                $files  = Player_Flags::getFlag('files', 'status');
                 
-                    if($this->setDownload()) {
-
-                        //@TODO
-
-                        print 'download' . "<br />";
-                        
-                    }
+                $status = Player_File::getFile($path['config'] . $files['file']);
+                
+                if($status == null) {
+                    
+                    $status = 'Downloading';
                     
                 }
+
+                $this->layout->timeout  = 5;
+                $this->layout->status   = $status;
                 
             }
             
         } else {
-                
-            print 'inativo' . "<br />";
         
             $validate = new Player_Validate();
             
-            if($validate->getActivation()){
-                
-                print 'code' . "<br />";
-
-                if($connection->checkConnection($this->getEnvironment())){
-                
-                    print 'connected' . "<br />";
-                    
-                    if($this->setInstall($connection, $validate)) {
-                        
-                        print 'active' . "<br />";
-                        
-                        //@TODO
-                        
-                    }
-
-                }
-
-            }
+            $activation = $validate->getActivation();
             
+            $this->setInstall($connection, $validate);
+
+            $this->layout->status   = 'Sign in for activate';
+            $this->layout->code     = $activation;
+
         }
-                
-        print 'end' . "<br />";
         
-        ob_end_flush();
+        $this->setScreen();
         
     }
 

@@ -61,17 +61,17 @@ class Player_Validate
      */
     public function getActivation() {
         
-        if(!$this->_activation) {
+        if($this->_activation == null) {
             
-            $activation = Player_File::getFile($this->_filename);
-            
-            if($activation) {
+            if(file_exists($this->_filename)){
+
+                $activation = Player_File::getFile($this->_filename);
 
                 $this->_activation = $activation;
 
             } else {
-                
-                $this->setActivation();
+
+                return $this->setActivation();
 
             }
             
@@ -90,9 +90,9 @@ class Player_Validate
 
         $code = $this->_setCode();
         
-        $activation = Player_Convert::setFile($this->_filename, $code);
+        Player_File::setFile($this->_filename, $code, true);
 
-        $this->_activation = $activation;
+        $this->_activation = $code;
             
         return $this->_activation;
         

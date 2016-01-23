@@ -531,8 +531,6 @@ class Player_Connect_FTP
                 foreach ($file as $key => $value) {
                     
                     if(!in_array($value[$label['file']], $done)) {
-                            
-                        print $local . $value[$label['file']] . "\n";
 
                         do {
 
@@ -565,8 +563,6 @@ class Player_Connect_FTP
                                 }
 
                             }
-                            
-                            print $log . "\n";
 
                         } while($result);
                         
@@ -574,17 +570,9 @@ class Player_Connect_FTP
                     
                 }
                 
-            } else {
-                
-                print 'Login error.' . "\n";
-                
             }
                 
             self::disconnect();
-            
-        } else {
-            
-            print 'Unable to connect to the server.' . "\n";
             
         }
         

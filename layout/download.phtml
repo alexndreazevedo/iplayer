@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php $this->setMeta('Content-Type', 'text/html; charset=utf-8'); ?>
+        
+        <?php $this->setTitle('iPlayer'); ?>
+        <script type="text/javascript">
+             function redirect() {
+                 
+                 location.href = location.href;
+                 
+             }
+             
+             window.setTimeout('redirect()', <?php $this->setPrint($this->timeout * 1000, false); ?>);
+        </script>
+        <style>
+            #box
+            {
+                width: 800px;
+                height: 420px;
+                display: table;
+            }
+            .loader
+            {
+                margin: 180px auto;
+                display: table;
+                text-align: center;
+                color: #666666;
+            }
+        </style> 
+    </head>
+    <body>
+        <div id="main">
+            <div class="content">
+                <div class="logo">
+                    <!-- LOGO HERE -->
+                </div>
+                <div id="box" style="">
+                    <div class="loader">
+                        <img src="<?php $this->getBase('css/images/loader.gif'); ?>" /><br/>
+                        <?php $this->setPrint($this->status); ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="footer">
+            <div class="content-footer">
+                <span class="rights">&copy; 2011</span>
+                <span class="slogan">iPlayer</span>
+            </div>
+        </div>
+    </body>
+</html>

@@ -56,7 +56,18 @@ class Player_Convert
             
             if (isset($value)) {
                 
-                $result = html_entity_decode(htmlentities($value, ENT_COMPAT, $encoding), ENT_COMPAT,'ISO-8859-1');
+                $value = ($value === 'true') ? true : $value;
+                $value = ($value === 'false') ? false : $value;
+                
+                if(is_string($value)) {
+                
+                    $result = Player_Utils::setEncode($value);
+                    
+                } else {
+                
+                    $result = $value;
+                    
+                }
 
             }
 
@@ -64,7 +75,7 @@ class Player_Convert
                 
                 foreach ($attributes as $attr => $val) {
                     
-                    $attributes_data[$attr] = html_entity_decode(htmlentities($val, ENT_COMPAT, $encoding), ENT_COMPAT,'ISO-8859-1');
+                    $attributes_data[$attr] = Player_Utils::setEncode($val);
                     
                 }
                 
@@ -200,7 +211,7 @@ class Player_Convert
             $params = ($params === true) ? 'true' : $params;
             $params = ($params === false) ? 'false' : $params;
                 
-            $child = html_entity_decode(htmlentities($params, ENT_COMPAT, $encoding), ENT_COMPAT,'ISO-8859-1');
+            $child = Player_Utils::setEncode($params);
                 
             $tag->appendChild($xml->createTextNode($child));
             

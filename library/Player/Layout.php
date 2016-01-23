@@ -3,67 +3,62 @@
 class Player_Layout
 {
     
-    static protected $_defs;
+    protected $_file;
     
-    static protected $_html;
+    protected $_path;
+    
+    public $base;
+    
+    public $root;
 
-    static function getLayout($type = null, $params = null){
+    public function __construct($path = null, $base = null, $root = null) {
         
-        if($type == null || $type == 'html'){
+        $this->setLayout();
+        $this->_path = $path;
+        
+        if($base == null){
             
-            if($params == null) {
-
-                return self::$_html;
-
-            } else {
-
-                return (isset(self::$_html[$params]) ? self::$_html[$params] : false);
-
-            }
+            $this->base = 'http://' . $_SERVER['SERVER_NAME'] . '/layout/';
             
+        }
+        
+        if($root == null){
+            
+            $this->root = 'http://' . $_SERVER['SERVER_NAME'] . '/files/medias/';
+            
+        }
+        
+        
+    }
+
+    public function getLayout($params = null){
+
+        if($params == null) {
+
+            return $this->_file;
+
         } else {
 
-            if($params == null) {
-
-                return self::$_defs;
-
-            } else {
-
-                return (isset(self::$_defs[$params]) ? self::$_defs[$params] : false);
-
+            if(isset($this->_file[$params])){
+                
+                return $this->_path . $this->_file[$params];
             }
-            
+
         }
-        
+            
+        return false;
+            
     }
     
-    static function setLayout(){
+    public function setLayout(){
         
-        if(self::getLayout('html') == null){
+        if($this->getLayout('html') == null){
             
-            self::$_html = array(
+            $this->_file = array(
                 
-                'login',
-                'play'
-                
-            );
-            
-        }
-        
-        if(self::getLayout('defs') == null){
-            
-            self::$_defs = array(
-                
-                'login' => array(
-                    
-                    'title' => 'Login',
-                    
-                ),
-                'play'  => array(
-                    
-                    'title' => 'Login'
-                    
-                ),
+                'login'     => 'login.phtml',
+                'download'  => 'download.phtml',
+                'play'      => 'play.phtml',
                 
             );
             
@@ -71,40 +66,143 @@ class Player_Layout
         
     }
 
-    static function setHTML($html) {
+    public function customLayout($params = array()) {
         
-        array_push(self::$_html, $html);
+        array_push($this->_file, $params);
         
     }
 
-    static function setDefs($defs) {
+    public function getMedia($params = null, $print = true) {
         
-        array_push(self::$_defs, $defs);
+        $return = $this->root . $params;
+        
+        if($print){
+            
+            print $return;
+            
+        } else {
+            
+            return $return;
+            
+        }
         
     }
-    
-    static function showLayout($layout = null, $html = null, $defs = null){
+
+    public function getBase($params = null, $print = true) {
         
-        self::setLayout();
+        $return = $this->base . $params;
         
-        if($html != null) {
+        if($print){
             
-            self::setHTML($html);
+            print $return;
             
-        }
-        
-        if($defs != null) {
+        } else {
             
-            self::setDefs($defs);
-            
+            return $return;
             
         }
         
-        $filename       = self::getLayout('html', $layout);
-        $definitions    = self::getLayout('defs', $layout);
+    }
+
+    public function setTitle($params = null, $print = true) {
         
-        //@TODO
+        $return = '<title>' . $params . '</title>' . PHP_EOL;
         
+        if($print){
+            
+            print $return;
+            
+        } else {
+            
+            return $return;
+            
+        }
+        
+    }
+
+    public function setScript($params = null, $options = null, $print = true) {
+        
+        $return = '<script src="' . $this->getBase($params, false) . '" language="' . $options . '"></script>' . PHP_EOL;
+        
+        if($print){
+            
+            print $return;
+            
+        } else {
+            
+            return $return;
+            
+        }
+        
+    }
+
+    public function setLink($params = null, $media = 'screen', $rel = 'stylesheet', $type = 'text/css', $print = true) {
+        
+        $return = '<link href="' . $this->getBase($params, false) . '" media="' . $media . '" rel="' . $rel . '" type="' . $type . '" />' . PHP_EOL;
+        
+        if($print){
+            
+            print $return;
+            
+        } else {
+            
+            return $return;
+            
+        }
+        
+    }
+
+    public function setMeta($params = null, $options = null, $print = true) {
+        
+        $return = '<meta http-equiv="' . $params . '" content="' . $options . '" />' . PHP_EOL;
+        
+        if($print){
+            
+            print $return;
+            
+        } else {
+            
+            return $return;
+            
+        }
+        
+    }
+
+    public function setPrint($params = null, $break = true) {
+        
+        if($break){
+        
+            print $params . PHP_EOL;
+            
+        } else {
+        
+            print $params;
+            
+        }
+        
+    }
+
+    public function showLayout($layout = null, $options = null){
+        
+        if($options != null) {
+            
+            $this->customLayout($options);
+            
+        }
+        
+        $filename = $this->getLayout($layout);
+        
+        $file = Player_File::getFile($filename);
+        
+        ob_start();
+        
+        include($filename);
+        
+        $return = ob_get_contents();
+        
+        ob_end_clean();
+
+        print $return;
         
     }
     

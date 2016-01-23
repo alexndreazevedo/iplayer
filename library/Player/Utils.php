@@ -170,5 +170,29 @@ class Player_Utils
         return $return;
         
     }
+
+    static public function setEncode($params = null, $encoding = 'UTF-8', $default = 'ISO-8859-1') {
+        
+        return html_entity_decode(htmlentities($params, ENT_COMPAT, $encoding), ENT_COMPAT, $default);
+        
+    }
+
+    static public function redirect($params = ''){
+        
+        return header('Location: http://' . $_SERVER["HTTP_HOST"] . '/' . $params);
+        
+    }
+    
+    static public function getInterface() {
+        
+        if(php_sapi_name() == 'cli') {
+            
+            return true;
+            
+        }
+        
+        return false;
+        
+    }
     
 }

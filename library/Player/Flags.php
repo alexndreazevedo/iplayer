@@ -66,7 +66,7 @@ class Player_Flags
             'file'      => REAL_PATH . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR,
             'media'     => REAL_PATH . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR . 'medias' . DIRECTORY_SEPARATOR,
             'library'   => REAL_PATH . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR,
-            'pic'       => REAL_PATH . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR . 'pictures' . DIRECTORY_SEPARATOR,
+            'picture'       => REAL_PATH . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR . 'pictures' . DIRECTORY_SEPARATOR,
             'temp'      => 'temp' . DIRECTORY_SEPARATOR,
             
         );
@@ -192,12 +192,34 @@ class Player_Flags
                     'filename'  => 'arquivo',
                     'library'   => 'biblioteca',
                     'xml'       => 'xml',
+                    'campaign'  => '_campanha',
+                    'media'     => '_midia',
+                    'status'    => 'status',
+                    'duration'  => 'duracao',
 
                 ),
 
             ),
 
             'files' => array(
+
+                'download'    => array(
+
+                    'file'      => 'download.bat',
+
+                ),
+
+                'log'    => array(
+
+                    'file'      => 'log.txt',
+
+                ),
+
+                'status'    => array(
+
+                    'file'      => 'status.txt',
+
+                ),
 
                 'config'    => array(
 
@@ -247,6 +269,15 @@ class Player_Flags
                 'feed'      => 'feed',
                 'user'      => 'user',
                 'pass'      => 'pass',
+
+            ),
+
+            'layout' => array(
+
+                'index'     => 'layout',
+                'login'     => 'login',
+                'download'  => 'download',
+                'play'      => 'play',
 
             ),
 
