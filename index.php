@@ -15,9 +15,7 @@ require_once 'Player/Application.php';
 $player = new Player_Application(
     
     APPLICATION_ENV,
-    array(
-        'file' => APPLICATION_PATH . '/config/config.ini'
-    )
+    APPLICATION_PATH . '/config/config.ini'
     
 );
 
@@ -25,4 +23,12 @@ date_default_timezone_set('America/Fortaleza');
 
 error_reporting(E_ALL|E_STRICT);
 
-$player->run();
+try {
+    
+    $player->run();
+    
+} catch (Exception $exception) {
+    
+    print 'Unable to load modules.';
+    
+}

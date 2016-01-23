@@ -24,13 +24,13 @@ class Player_Application
     public function __construct($environment = null, $options = null)
     {
         
+        require_once 'Player/Loader/Autoloader.php';
+        $this->_autoloader = Player_Loader_Autoloader::getInstance();
+        
         $this->setTimeOut();
         $this->_environment = (string) $environment;
 
-        require_once 'Player/Loader/Autoloader.php';
-        $this->_autoloader = Player_Loader_Autoloader::getInstance();
-
-        if (null !== $options) {
+        if ($options !== null) {
 
             if (is_string($options)) {
                 
@@ -39,11 +39,10 @@ class Player_Application
             } elseif (is_array($options)) {
                 
                 $options = $this->setOptions($options);
-                print 'string';
                 
             }
 
-            $this->setOptions($options);
+            $this->_config = $this->setOptions($options);
             
         }
         
@@ -52,18 +51,24 @@ class Player_Application
     public function run()
     {
         
-        //@TODO
+        $status = new Player_Validate();
+        
+        if($status->getValidate()){
+            
+            //@TODO
+            
+        }
         
     }
 
     public function setTimeOut($time = 0)
     {
         
-        $this->_timeout = set_time_limit($time);
+        $this->_timeout = set_time_limit((int) $time);
         
     }
 
-    public function setOptions()
+    public function setOptions($options)
     {
         
         $array = array();
@@ -72,7 +77,7 @@ class Player_Application
             
             if (is_array($value)) {
                 
-                $array[$key] = $value->setOptions();
+                $array[$key] = $this->setOptions($options);
                 
             } else {
                 
@@ -147,6 +152,13 @@ class Player_Application
     {
         
         // @TODO
+        
+    }
+    
+    public function getEnvironment()
+    {
+        
+        return $this->_environment;
         
     }
     
