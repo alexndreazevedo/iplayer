@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php $this->setMeta('Content-Type', 'text/html; charset=utf-8'); ?>
+        <?php $this->setMeta('Refresh', $this->refresh); ?>
+        
+        <?php $this->setLink('css/style.css', 'screen', 'stylesheet', 'text/css'); ?>
+        
+        
+    </head>
+    <body>
+        <div id="main">
+            <div class="content">
+                <div class="logo">
+                    <!-- LOGO HERE -->
+                </div>
+                <div id="box">
+                    <div class="loader">
+                        <img src="<?php $this->getBase('css/images/loader.gif'); ?>" /><br/>
+                        <?php $this->setPrint($this->msg); ?><?php $this->setPrint($this->status); ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="footer">
+            <div class="content-footer">
+                <span class="rights">&copy; 2011</span>
+                <span class="slogan">iPlayer</span>
+            </div>
+        </div>
+    </body>
+</html>

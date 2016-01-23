@@ -1,0 +1,189 @@
+body {
+    margin: 0px;
+    background-color: #a1a1a1;
+    font-size: 12px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+a {
+    border: 0px;
+}
+
+img {
+    border: 0px;
+}
+
+#main {
+    border-top: #fdb311 solid 6px;
+    border-bottom: #fdb311 solid 6px;
+    width: auto;
+    min-height: 550px;
+    background: url(images/background-top.gif) repeat;
+}
+
+#footer {
+    width: auto;
+    min-height: 102px;
+    background: url(images/background-footer.png) repeat;
+}
+
+.content {
+    width: 760px;
+    height: auto;
+    margin: 0px auto;
+}
+
+.content .logo {
+    margin: 0px auto;
+    width: 336px;
+    height: 268px;
+}
+
+.content .form-login {
+    margin: 0px auto;
+    width: 411px;
+}
+
+.content .form-login .back-form {
+    background-image: url(images/background-form.png);
+    width: 411px;
+    height: 141px;
+    padding-top: 44px;
+}
+
+.content .form-login .input-login {
+    width: 321px;
+    height: 40px;
+    background-image: url(images/form-input.png);
+    margin: 0px auto;
+}
+
+.content .form-login .input-password {
+    width: 321px;
+    height: 40px;
+    background-image: url(images/form-input.png);
+    margin: 10px auto;
+}
+
+.content .form-login .submit {
+    margin-right: 10px;
+    float: right;
+}
+
+.input-text {
+    background: transparent;
+    border: none;
+    width: 299px;
+    margin-left: 10px;
+    margin-top: 10px;
+    font-style: italic;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #999999;
+    position: absolute;
+}
+
+.input-pass {
+    background: transparent;
+    border: none;
+    width: 299px;
+    margin-left: 0px;
+    margin-top: 10px;
+    font-style: italic;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #999999;
+    position: absolute;
+    float: left;
+    margin-left: 10px;
+}
+
+.recover-password {
+    margin: 10px auto;
+    width: 143px;
+    height: 30px;
+}
+
+.content-footer {
+    width: 760px;
+    margin: 0px auto;
+    padding-top: 40px;
+}
+
+.rights {
+    color: #999999;
+    float: left;
+}
+
+.slogan {
+    color: #999999;
+    text-align: right;
+    float: right;
+    font-size: 11px;
+}
+
+.slogan strong {
+    color: #fdb311;
+    font-size: 12px;
+}
+
+span.span-ab {
+    font-style: italic;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #999999;
+    width: auto;
+    margin-top: 11px;
+    float: left;
+    position: absolute;
+    z-index: 100;
+    margin-right: 100px;
+    padding-left: 10px;
+}
+
+h2 {
+    margin-top: 15px;
+    color: #999;
+    text-align: center;
+}
+
+table {
+    border: 0px;
+}
+
+.ftp {
+    width: auto;
+    display: table;
+    margin-left: 45px;
+}
+
+.player-data, .activation-code {
+    display: table;
+    margin: -13px auto;
+    margin-left: -30px;
+    width: 475px;
+    text-align: center;
+    margin-bottom: 3px;
+}
+
+span.not-set {
+    color: red;
+    font-weight: bold;
+}
+
+span.set {
+    color: green;
+    font-weight: bold;
+}
+
+.box
+{
+	width: 800px;
+	/*height: 280px;*/
+	display: table;
+}
+
+.loader
+{
+	margin: 60px auto;
+	display: table;
+	text-align: center;
+	color: #666666;
+}

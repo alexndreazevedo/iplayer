@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php $this->setMeta('Content-Type', 'text/html; charset=utf-8'); ?>
+        
+        <?php $this->setLink('css/style.css', 'screen', 'stylesheet', 'text/css'); ?>
+        
+        <?php $this->setTitle('iPlayer'); ?>
+    </head>
+    <body>
+        <div id="main">
+            <div class="content">
+                <div class="logo">
+                    <!-- LOGO HERE -->
+                </div>
+                <div class="activationcode" style="text-align: center !important">
+                    <strong>
+                        <?php $this->setPrint($this->status); ?>
+                    </strong>
+                </div>
+                <div class="form-login">
+                    <form action="" method="post">
+                        <div class="back-form">
+                            <div class="input-login">
+                                <input type="text" class="input-text" value="" name="login" require="true" title="Login"  />
+                            </div>
+                            <div class="input-password">
+                                <input type="password" class="input-pass" value="" style="width:230px;" name="password" id="password" require="true" title="Password" />
+                                <input type="image" class="submit" src="<?php $this->getBase('css/images/activate.png'); ?>"/>
+                            </div>
+                        </div>
+                    </form>
+                    <h2>Activation code</h2>
+                    <div class="activation-code">
+                        <strong>
+                            <?php $this->setPrint($this->code); ?>
+                        </strong>
+                    </div>
+                    <br clear="all" />
+                    <br clear="all" />
+                </div>
+            </div>
+        </div>
+        <div id="footer">
+            <div class="content-footer">
+                <span class="rights">&copy; 2011</span>
+                <span class="slogan">iPlayer</span>
+            </div>
+        </div>
+    </body>
+</html>

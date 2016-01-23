@@ -1,0 +1,5 @@
+.hg
+.hgignore
+files/
+config/
+config.php
