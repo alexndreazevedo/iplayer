@@ -256,20 +256,20 @@ class Player_Convert
                     if(count($value) > 1) {
 
                         $return .= self::setIni($value, $filename, $level);
-
+						
                     } else {
 
-                        $return .= $key . ' = "' . self::setIni($value, $filename, $level) . '"' . "\n";
+                        $return .= $key . ' = "' . self::setIni($value, $filename, $level) . '"' . PHP_EOL;
 
                     }
 
-                } else if ($value == '') {
-
-                    $return .= $key;
-
+				} else if (is_int($value)) {
+					
+					$return .= $key . ' = "' . $value . '"' . PHP_EOL;
+					
                 } else {
 
-                    $return .= $value;
+					$return .= $key . ' = "' . $value . '"' . PHP_EOL;
 
                 }
 

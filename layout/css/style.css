@@ -172,3 +172,18 @@ span.set {
     color: green;
     font-weight: bold;
 }
+
+.box
+{
+	width: 800px;
+	/*height: 280px;*/
+	display: table;
+}
+
+.loader
+{
+	margin: 100px auto;
+	display: table;
+	text-align: center;
+	color: #666666;
+}

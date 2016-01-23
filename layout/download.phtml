@@ -2,32 +2,11 @@
 <html>
     <head>
         <?php $this->setMeta('Content-Type', 'text/html; charset=utf-8'); ?>
+        <?php $this->setMeta('Refresh', $this->refresh); ?>
         
-        <?php $this->setTitle('iPlayer'); ?>
-        <script type="text/javascript">
-             function redirect() {
-                 
-                 location.href = location.href;
-                 
-             }
-             
-             window.setTimeout('redirect()', <?php $this->setPrint($this->timeout * 1000, false); ?>);
-        </script>
-        <style>
-            #box
-            {
-                width: 800px;
-                height: 420px;
-                display: table;
-            }
-            .loader
-            {
-                margin: 180px auto;
-                display: table;
-                text-align: center;
-                color: #666666;
-            }
-        </style> 
+        <?php $this->setLink('css/style.css', 'screen', 'stylesheet', 'text/css'); ?>
+        
+        
     </head>
     <body>
         <div id="main">
@@ -35,7 +14,7 @@
                 <div class="logo">
                     <!-- LOGO HERE -->
                 </div>
-                <div id="box" style="">
+                <div id="box">
                     <div class="loader">
                         <img src="<?php $this->getBase('css/images/loader.gif'); ?>" /><br/>
                         <?php $this->setPrint($this->status); ?>

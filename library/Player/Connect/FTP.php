@@ -1,7 +1,7 @@
 <?php
-
 require_once 'Player/Flags.php';
 require_once 'Player/File.php';
+require_once 'Player/Debug.php';
 
 class Player_Connect_FTP
 {
@@ -527,12 +527,20 @@ class Player_Connect_FTP
                 }
                 
                 $done = array();
-                
-                foreach ($file as $key => $value) {
+				
+				foreach ($file as $key => $value) {
                     
                     if(!in_array($value[$label['file']], $done)) {
+                        
+                        $i = 1;
+						
+						$status = (count($done) + 1) . ' de ' . count($file);
+
+						Player_Debug::setStatus(false, $status);
 
                         do {
+        
+                            Player_Debug::setDebug($value[$label['file']], 1);
 
                             $result = true;
                             
@@ -562,8 +570,13 @@ class Player_Connect_FTP
                                     
                                 }
 
-                            }
+                            } else {
+                                
+                                Player_Debug::setDebug('Error downloading ' . $value[$label['file']] . '. Trying again.', 2);
+                                Player_Debug::setDebug('Fail: ' . $i++, 3);
 
+                            }
+                            
                         } while($result);
                         
                     }

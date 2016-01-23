@@ -23,13 +23,6 @@ class Player_Application
     protected $_environment;
 
     /**
-     * Session for the playing mode.
-     *
-     * @var array
-     */
-    protected $_session = array();
-
-    /**
      * Validate the first download.
      *
      * @var boolean
@@ -255,31 +248,6 @@ class Player_Application
         }
         
     }
-
-    /**
-     * Gets sessions of the playing mode.
-     *
-     * @return array
-     */
-    public function getSession()
-    {
-        
-        return $this->_session;
-        
-    }
-
-    /**
-     * Sets sessions of the playing mode.
-     *
-     * @param  array $session null
-     * @return array
-     */
-    public function setSession($session = null)
-    {
-        
-        //@TODO
-        
-    }
     
     /**
      * Gets if the first download is done.
@@ -295,7 +263,7 @@ class Player_Application
 
         if(isset($config[$flag])){
             
-            if($config[$flag]){
+            if(intval($config[$flag]) == 1){
             
                 return $this->_download = true;
                 
@@ -322,33 +290,49 @@ class Player_Application
     {
         
         if($connection->checkConnection($this->getEnvironment())){
+            
+            $session = new Player_Session('download');
+            
+            if(isset($_GET['layout'])){
+                
+                if($_GET['layout'] == 'download') {
 
-            if(isset($_GET['layout'])) {
+                    if($session->getSession('download') == 0){
+                        
+                        $files  = Player_Flags::getFlag('files', 'download');
+                        $path   = Player_Flags::getFlag('path');
 
-                if(!$_GET['layout'] == 'download') {
+                        $filename = $path['config'] . $files['file'];
+
+                        $download = '"' . REAL_PATH . DIRECTORY_SEPARATOR . 'download.php"';
+
+                        $params =
+<<<HEREDOC
+START /MIN /HIGH php -f $download EXIT
+HEREDOC;
+
+                        Player_File::setFile($filename, $params, true);
+
+                        $shell = new COM('WScript.Shell');
+
+                        $shell->Run($filename, 0, false);
+						
+						Player_Debug::setStatus('Starting download...', '', false, true);
+                        
+                        $session->setSession('download', 1);
+
+                        Player_Utils::redirect('download');
+
+                    }
+
+                } else {
 
                     Player_Utils::redirect('download');
-
+                    
                 }
+            
+            } else {
 
-            } else  {
-                
-                $files  = Player_Flags::getFlag('files', 'download');
-                $path   = Player_Flags::getFlag('path');
-                
-                $filename = $path['config'] . $files['file'];
-                
-                $download = '"' . REAL_PATH . DIRECTORY_SEPARATOR . 'download.php"';
-                
-                $params = <<<HEREDOC
-@ECHO OFF
-START /MIN /HIGH php -f $download
-HEREDOC;
-                
-                Player_File::setFile($filename, $params, true);
-                
-                exec("$filename");
-                
                 Player_Utils::redirect('download');
 
             }
@@ -397,18 +381,37 @@ HEREDOC;
 
             if($_GET['layout'] == 'play'){
                 
-                $session    = new Player_Session('Player');
+                $session    = new Player_Session('play');
         
                 $play       = new Player_Play($session);
                 
                 $flags  = Player_Flags::getFlag();
                 $media  = Player_Flags::getFlag('playlist', 'media');
+                $path   = Player_Flags::getFlag('path', 'rel');
                 $return = $play->run();
-                
-                $this->layout->flags    = $flags;
-                $this->layout->xml      = 'http://' . $_SERVER["HTTP_HOST"] . '/files/library/' . $return[$media['xml']];
-                $this->layout->media    = 'http://' . $_SERVER["HTTP_HOST"] . '/files/medias/' . $return[$media['filename']] . '?library=' . $this->layout->xml;
-                $this->layout->refresh  = $return[$media['duration']] . '; URL=http://' . $_SERVER["HTTP_HOST"] . '/play';
+				
+				if(Player_Debug::getClear()) {
+
+					$session->clearSession();
+					Player_Utils::redirect();
+
+				} else {
+
+					$server = 'http://' . $_SERVER["HTTP_HOST"];
+					$params = '';
+
+					if($return[$media['type']] == $media['library']) {
+
+						$params =   '?library=' . $server . $path['library'] . $return[$media['xml']] . 
+                                    '&picture=' . $server . $path['picture'];
+
+					}
+
+					$this->layout->media    = $server . $path['media'] . $return[$media['filename']] . $params;
+					$this->layout->flags    = $flags;
+					$this->layout->refresh  = $return[$media['duration']] . '; URL=' . $server . '/play';
+					
+				}
 
             } else {
 
@@ -438,7 +441,7 @@ HEREDOC;
 
         if(isset($config[$flag])){
             
-            if($config[$flag]){
+            if(intval($config[$flag]) == 1){
             
                 return $this->_install = true;
                 
@@ -504,18 +507,18 @@ HEREDOC;
                                 $player['status']   => 1
 
                             );
-
+                            
                             if($this->__runInstall($connection, $validate, $params)){
 
-                                Player_Utils::redirect();
+                                Player_Utils::redirect('download');
 
+                            } else {
+                                
+                                $this->layout->status = 'Connection error. Try again.';
+                                
                             }
 
                         }
-
-                    } else {
-
-                        Player_Utils::redirect('login');
 
                     }
 
@@ -555,9 +558,7 @@ HEREDOC;
             $xml = Player_Convert::getXML($login, $label['config']);
             
             if(isset($xml[$player['id']])){
-            
-                Player_File::setFile($this->getConfigFile(), $login, true);
-            
+
                 $params = array(
 
                     $player['id']   => $xml[$player['id']]
@@ -566,12 +567,17 @@ HEREDOC;
 
                 $connection->loadConnection($this->getEnvironment(), $url['last'], $params);
 
-                if($xml[$status['active']]) {
+            }
 
+            if(isset($xml[$status['active']])){
+
+                if(intval($xml[$status['active']]) == 1){
+                    
+                    Player_File::setFile($this->getConfigFile(), $login, true);
                     return true;
 
                 }
-                
+
             }
             
         }

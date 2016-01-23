@@ -15,8 +15,11 @@ class Player extends Player_Application
     
     public function run()
     {
-
+    
         $connection = new Player_Connect();
+        $validate = new Player_Validate();
+            
+        $activation = $validate->getActivation();
         
         if($this->getInstall()){
             
@@ -27,33 +30,22 @@ class Player extends Player_Application
             } else {
 
                 $this->setDownload($connection);
+				
+                $status = Player_Debug::getStatus();
                 
-                $path   = Player_Flags::getFlag('path');
-                $files  = Player_Flags::getFlag('files', 'status');
-                
-                $status = Player_File::getFile($path['config'] . $files['file']);
-                
-                if($status == null) {
-                    
-                    $status = 'Downloading';
-                    
-                }
-
-                $this->layout->timeout  = 5;
-                $this->layout->status   = $status;
+                $this->layout->refresh  = 5;
+                $this->layout->msg		= $status['msg'];
+                $this->layout->status   = $status['status'];
+                $this->layout->code     = $activation;
                 
             }
             
         } else {
-        
-            $validate = new Player_Validate();
-            
-            $activation = $validate->getActivation();
-            
-            $this->setInstall($connection, $validate);
 
             $this->layout->status   = 'Sign in for activate';
             $this->layout->code     = $activation;
+            
+            $this->setInstall($connection, $validate);
 
         }
         

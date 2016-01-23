@@ -69,6 +69,14 @@ class Player_Flags
             'picture'       => REAL_PATH . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR . 'pictures' . DIRECTORY_SEPARATOR,
             'temp'      => 'temp' . DIRECTORY_SEPARATOR,
             
+            'rel'       => array(
+                
+                'media'     => '/files/medias/',
+                'library'   => '/files/libraries/',
+                'picture'   => '/files/pictures/',
+                
+            ),
+            
         );
         
     }
@@ -185,6 +193,8 @@ class Player_Flags
 
                     'index'     => 'midias',
                     'name'      => 'nome',
+                    'title'     => 'titulo',
+                    'template'  => 'template',
                     'type'      => 'tipo',
                     'hash'      => 'hash',
                     'status'    => 'status',
@@ -192,8 +202,8 @@ class Player_Flags
                     'filename'  => 'arquivo',
                     'library'   => 'biblioteca',
                     'xml'       => 'xml',
-                    'campaign'  => '_campanha',
-                    'media'     => '_midia',
+                    'campaign'  => 'campanha',
+                    'media'     => 'midia',
                     'status'    => 'status',
                     'duration'  => 'duracao',
 
@@ -202,6 +212,12 @@ class Player_Flags
             ),
 
             'files' => array(
+
+                'refresh'    => array(
+
+                    'file'      => '.refresh',
+
+                ),
 
                 'download'    => array(
 
@@ -217,7 +233,7 @@ class Player_Flags
 
                 'status'    => array(
 
-                    'file'      => 'status.txt',
+                    'file'      => 'status.ini',
 
                 ),
 

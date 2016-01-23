@@ -10,6 +10,8 @@ class Player_Layout
     public $base;
     
     public $root;
+    
+    public $media;
 
     public function __construct($path = null, $base = null, $root = null) {
         

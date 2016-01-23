@@ -23,18 +23,17 @@ class Player_Play
         $this->session($session);
         
     }
-    
-    public function run(){
+
+	public function run(){
         
         $media  = Player_Flags::getFlag('playlist', 'media');
         $label  = Player_Flags::getFlag('label', 'playlist');
         $path   = Player_Flags::getFlag('path');
-
+		
         $campaigns  = $this->session()->getSession($media['campaign']);
         $medias     = $this->session()->getSession($media['media']);
         
-        $this->checkCampaign($campaigns);
-        $this->checkMedia($medias);
+        $this->checkMedia($campaigns, $medias);
         
         $this->setNewMedia($this->getCampaign(), $this->getMedia());
         
@@ -191,15 +190,24 @@ class Player_Play
         
     }
 
-    protected function checkMedia($medias = null) {
-        
-        $campaigns = $this->getCampaign();
+    protected function checkMedia($campaigns = 0, $medias = 0, $check = false) {
         
         $playlist = $this->getPlaylist();
         
         $media  = Player_Flags::getFlag('playlist', 'media');
+        $path   = Player_Flags::getFlag('path');
         
-        if(!isset($playlist[$campaigns][$media['index']][$medias])){
+        if(!array_key_exists($campaigns, $playlist)){
+            
+            reset($playlist);
+
+            $campaigns = key($playlist);
+
+        }
+            
+        $this->setCampaign($campaigns);
+        
+        if(!array_key_exists($medias, $playlist[$campaigns][$media['index']])){
             
             reset($playlist[$campaigns][$media['index']]);
 
@@ -207,7 +215,55 @@ class Player_Play
 
         }
             
-        return $this->setMedia($medias);
+        $this->setMedia($medias);
+        
+        if($check){
+        
+            $set = true;
+			
+			if(!empty($playlist[$campaigns][$media['index']][$medias])){
+
+				if(!file_exists($path['media'] . $playlist[$campaigns][$media['index']][$medias])){
+
+					foreach ($playlist as $key => $value){
+
+						foreach ($value[$media['index']] as $k => $v){
+
+							if($set){
+								
+								if(isset($v[$media['filename']])){
+
+									if(file_exists($path['media'] . $v[$media['filename']])){
+
+										$campaigns  = $this->setCampaign($key);
+										$medias     = $this->setMedia($k);
+
+										$set = false;
+
+									}
+
+								}
+
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+
+        }
+        
+        $return = array(
+            
+            $media['campaign'] => $campaigns,
+            $media['media'] => $medias,
+            
+        );
+        
+        return $return;
                 
     }
     
@@ -225,23 +281,7 @@ class Player_Play
         
     }
 
-    protected function checkCampaign($campaigns = null) {
-        
-        $playlist = $this->getPlaylist();
-        
-        if(!isset($playlist[$campaigns])){
-            
-            reset($playlist);
-
-            $campaigns = key($playlist);
-
-        }
-            
-        return $this->setCampaign($campaigns);
-        
-    }
-
-    protected function getNewMedia($campaigns = null, $medias = null) {
+    protected function getNewMedia($campaigns = 0, $medias = 0) {
         
         $playlist = $this->getPlaylist();
         
@@ -251,7 +291,7 @@ class Player_Play
         $duration   = $playlist[$campaigns][$media['duration']];
         $total      = count($playlist[$campaigns][$media['index']]);
 
-        $select = $playlist[$campaigns][$media['index']][$medias];
+		$select = $playlist[$campaigns][$media['index']][$medias];
 
         $params = array(
 
@@ -385,12 +425,7 @@ class Player_Play
         
         if($return == null){
 
-            $return = array(
-
-                $media['campaign']  => $this->checkCampaign(),
-                $media['media']     => $this->checkMedia(),
-
-            );
+            $return = $this->checkMedia($campaigns, $medias, true);
             
         }
         
