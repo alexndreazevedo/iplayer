@@ -1,20 +1,54 @@
 <?php
 
+/**
+ * Player_Connect
+ * 
+ * Connects the player to server
+ */
 class Player_Connect
 {
-    
-    protected $_protocol = 'http://';
-    
-    protected $_subdomain = 'api';
-    
-    protected $_domain = 'appserver.com';
-    
-    protected $_port = 80;
-    
-    protected $_path = '/';
-    
 
-    public function check() {
+    /**
+     * Protocol access server.
+     *
+     * @var string
+     */
+    protected $_protocol = 'http';
+
+    /**
+     * Subdomain of server name.
+     *
+     * @var string 'testes'
+     */
+    protected $_subdomain = 'api';
+
+    /**
+     * Server name.
+     *
+     * @var string 'appserver.com'
+     */
+    protected $_domain = 'appserver.com';
+
+    /**
+     * Port access server.
+     *
+     * @var integer 80
+     */
+    protected $_port = 80;
+
+    /**
+     * Path server name.
+     *
+     * @var string ''
+     */
+    protected $_path = '';
+    
+    /**
+     * Check the connection to server
+     * 
+     * @return boolean
+     */
+    public function checkConnection() {
         
         if (!@fsockopen($this->_domain, $this->_port, $errno, $errstr, 5)) {
             
@@ -30,15 +64,31 @@ class Player_Connect
         
     }
     
-    public function load($path, array $params = null) {
+    /**
+     * Load a URL from server
+     * 
+     * Sets and gets the validation of the player
+     *
+     * @param  string $path null
+     * @param  array $params null
+     * @return array
+     */
+    public function loadConnection($environment = null, $path = null, $params = null) {
+
+        if($environment == 'development') {
+            
+            $this->_subdomain = 'test';
+            
+        }
         
-        if($this->check()) {
-
-            $return = array();
-            $result = '';
-
-            $url = $this->_protocol . $this->_subdomain . $this->_domain . $this->_path . $path;
-
+        if($this->checkConnection()) {
+            
+            $url = $this->_protocol . '://' . 
+                    $this->_subdomain . '.' . 
+                    $this->_domain . '/' . 
+                    $this->_path . '/' . 
+                    $path;
+            
             $curl = curl_init();
 
             curl_setopt_array($curl,
@@ -55,28 +105,28 @@ class Player_Connect
 
             );
 
-            $result = curl_exec($curl);
+            $return = curl_exec($curl);
 
             curl_close($curl);
+            
+            $json = new Player_Convert;
 
-            $json = new Convert;
-            $result = $json
-                ->getJson($result)
-                ->toArray($result);
+            $return = $json->getJson($return);
+            $return = $json->toArray($return);
+            
+            foreach ($return as $key => $value) {
 
-            if (is_array($return)) {
+                $i = ($path == 'login') ? 'dev' : $key;
 
-                foreach ($return as $key => $value) {
-
-                    $i = ($path == 'login') ? 'dev' : $key;
-
-                    $return[$i] = $value;
-
-                }
-
-                return $return;
+                $return[$i] = $value;
 
             }
+
+            return $return;
+            
+        } else {
+            
+            return false;
             
         }
 

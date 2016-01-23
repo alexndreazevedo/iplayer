@@ -1,96 +1,176 @@
 <?php
 
+/**
+ * Player_Application
+ * 
+ * Run application
+ */
 class Player_Application
 {
 
+    /**
+     * Storages the Player_Loader_Autoloader instance class.
+     *
+     * @var Player_Loader_Autoloader
+     */
     protected $_autoloader;
 
-    protected $_bootstrap;
-
+    /**
+     * Environment of running.
+     *
+     * @var string
+     */
     protected $_environment;
-    
+
+    /**
+     * Session for the playing mode.
+     *
+     * @var array
+     */
     protected $_session = array();
-    
+
+    /**
+     * Validate the access to server.
+     *
+     * @var boolean
+     */
     protected $_access = false;
-    
+
+    /**
+     * Install player options.
+     *
+     * @var array
+     */
     protected $_install = array();
-        
-    protected $_options = array();
-        
+
+    /**
+     * Settings from .ini file.
+     *
+     * @var array
+     */
     protected $_config = array();
-    
+
+    /**
+     * Flags the activation, install and playing mode.
+     *
+     * @var array
+     */
+    protected $_flag = array();
+
+    /**
+     * Sets the timeout of running.
+     *
+     * @var integer
+     */
     protected $_timeout = 0;
 
+    /**
+     * Options of the Player_Application class.
+     *
+     * @var array
+     */
+    protected $_options = array();
+
+    /**
+     * Player_Application class
+     * 
+     * Install and play the player
+     *
+     * @param  string $environment null
+     * @param  array $options null
+     * @return void
+     */
     public function __construct($environment = null, $options = null)
     {
-        
         require_once 'Player/Loader/Autoloader.php';
         $this->_autoloader = Player_Loader_Autoloader::getInstance();
+        
+        $this->load();
+        
+        $this->setConstruct($environment, $options);
+        
+    }
+
+    /**
+     * Loads function definition for extends classes.
+     * This class is inserted before the Player_Application definitions
+     *
+     * @return void
+     */
+    public function load() {}
+
+    /**
+     * Run function definition for extends classes.
+     * This class is inserted after the Player_Application definitions
+     *
+     * @return void
+     */
+    public function run() {}
+
+    /**
+     * Construct function for run between load() and run() extends classes.
+     * Sets timeout, environment of running, options to settings and flags.
+     *
+     * @param  string $environment null
+     * @param  array $options null
+     * @return void
+     */
+    public function setConstruct($environment = null, $options = null) {
         
         $this->setTimeOut();
         $this->_environment = (string) $environment;
 
         if ($options !== null) {
 
-            if (is_string($options)) {
-                
-                $options = $this->setConfig($options);
-                
-            } elseif (is_array($options)) {
-                
-                $options = $this->setOptions($options);
-                
-            }
-
-            $this->_config = $this->setOptions($options);
+            $this->setOptions($options);
+            $this->setConfig();
             
         }
         
-    }
-    
-    public function run()
-    {
-        
-        if(!$this->getAcess()){
+        $this->setFlag(
             
-           $this->setAcess(); 
+            array(
+                
+                'status'  => array(
+                    
+                    'active'    => 'ativo',
+                    'run'       => 'inicializa',
+                    'download'  => 'fimciclo',
+                    
+                ),
+                
+                'url'  => array(
+                    
+                    'login'     => 'login',
+                    'config'    => 'config',
+                    'access'    => 'ultimoacesso',
+                    
+                ),
+                
+            )
             
-        }
-
-        //@TODO
+        );
         
     }
 
+    /**
+     * Sets timeout to script.
+     *
+     * @param  integer $time 0
+     * @return void
+     */
     public function setTimeOut($time = 0)
     {
         
-        $this->_timeout = set_time_limit((int) $time);
+        $this->_timeout = set_time_limit($time);
         
     }
 
-    public function setOptions($options)
-    {
-        
-        $array = array();
-        
-        foreach ($array as $key => $value) {
-            
-            if (is_array($value)) {
-                
-                $array[$key] = $this->setOptions($options);
-                
-            } else {
-                
-                $array[$key] = $value;
-                
-            }
-            
-        }
-        
-        return $array;
-        
-    }
-
+    /**
+     * Gets the options of the Player_Application class.
+     *
+     * @return array
+     */
     public function getOptions()
     {
         
@@ -98,24 +178,122 @@ class Player_Application
         
     }
 
-    public function setConfig($configs)
+    /**
+     * Sets the options of the Player_Application class.
+     *
+     * @param  array $options null
+     * @param  integer $level -1
+     * @return array
+     */
+    public function setOptions($options = null, $level = -1)
     {
         
-        if(file_exists($configs)){
+        $level++;
+        $return = array();
         
-            $this->_config = Player_Convert::getIni($configs);
+        if(is_string($options) && $level == 0) {
+            
+            $return['file'] = $options;
+            
+        } else if(is_string($options)) {
+            
+            $return = $options;
+            
+        } else if(is_array($options)) {
+
+            foreach ($options as $key => $value) {
+
+                if (is_array($value)) {
+
+                    $return[$key] = $this->setOptions($options, $level);
+
+                } else {
+
+                    $return[$key] = $value;
+
+                }
+
+            }
+        
+        }
+        
+        if($level == 0) {
+            
+            return $this->_options = $return;
+            
+        } else {
+
+            return $return;
             
         }
         
     }
 
+    /**
+     * Gets .ini of the settings.
+     *
+     * @return array
+     */
+    public function getConfigFile()
+    {
+        
+        return $this->_options['file'];
+        
+    }
+
+    /**
+     * Gets the settings.
+     *
+     * @return array
+     */
     public function getConfig()
     {
         
         return $this->_config;
         
     }
-    
+
+    /**
+     * Sets the settings from .ini file.
+     *
+     * @param  array $configs null
+     * @return array
+     */
+    public function setConfig()
+    {
+        
+        $filename = $this->getConfigFile();
+        
+        if($filename != null) {
+
+            if(file_exists($filename)){
+
+                $this->_config = Player_Convert::getIni($filename);
+
+            }
+
+        }
+        
+    }
+
+    /**
+     * Gets sessions of the playing mode.
+     *
+     * @return array
+     */
+    public function getSession()
+    {
+        
+        return $this->_session;
+        
+    }
+
+    /**
+     * Sets sessions of the playing mode.
+     *
+     * @param  array $session null
+     * @return array
+     */
     public function setSession($session = null)
     {
         
@@ -123,13 +301,23 @@ class Player_Application
         
     }
     
-    public function getSession()
+    /**
+     * Gets if the access to server is allow.
+     *
+     * @return boolean
+     */
+    public function getAcess()
     {
         
-        return $this->_session;
+        return $this->_access;
         
     }
     
+    /**
+     * Checks and set the access to server.
+     *
+     * @return boolean
+     */
     public function setAcess()
     {
         
@@ -143,13 +331,11 @@ class Player_Application
         
     }
     
-    public function getAcess()
-    {
-        
-        return $this->_access;
-        
-    }
-    
+    /**
+     * Gets the environment to playing mode.
+     *
+     * @return string
+     */
     public function getEnvironment()
     {
         
@@ -157,15 +343,101 @@ class Player_Application
         
     }
     
-    public function setInstall()
+    /**
+     * Gets flags.
+     *
+     * @param  string $flag null
+     * @param  string $sub null
+     * @return string
+     */
+    public function getFlag($flag = null, $sub = null)
     {
         
-        return $this->_install;
+        if(isset($this->_flag[$flag])) {
+        
+            if(isset($this->_flag[$flag][$sub])) {
+            
+                return $this->_flag[$flag][$sub];
+                
+            } else {
+            
+                return $this->_flag[$flag];
+                
+            }
+            
+            
+        } else {
+        
+            return false;
+            
+        }
         
     }
     
+    /**
+     * Sets flags.
+     *
+     * @param  array $flags array
+     * @return array
+     */
+    public function setFlag($flags = array())
+    {
+        
+        return $this->_flag = $flags;
+        
+    }
+    
+    /**
+     * Gets values of the flags from settings.
+     *
+     * @return boolean
+     */
+    public function getInstall()
+    {
+        
+        $config = $this->getConfig();
+        
+        $flag = $this->getFlag('status', 'active');
+
+        if(isset($config[$flag])){
+            
+            if($config[$flag]){
+            
+                return $this->_install = true;
+                
+            } else {
+            
+                return $this->_install = false;
+                
+            }
+            
+        } else {
+            
+            return $this->_install = false;
+            
+        }
+        
+    }
+    
+    /**
+     * Sets installation.
+     *
+     * @return string
+     */
+    public function setInstall()
+    {
+        return $this->__runInstall();
+    }
+    
+    /**
+     * Run installation.
+     *
+     * @return string
+     */
     private function __runInstall()
     {
+        
+        print "\n" . 'run install';
         
         //@TODO
         

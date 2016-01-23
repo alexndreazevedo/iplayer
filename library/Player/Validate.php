@@ -1,102 +1,131 @@
 <?php
 
-class Player_Validate {
+/**
+ * Player_Validate
+ * 
+ * Validates values in the player
+ */
+class Player_Validate
+{
 
+    /**
+     * Activation code from .activation file.
+     *
+     * @var string
+     */
     protected $_activation;
-    protected $_validate;
+
+    /**
+     * Check the validation of the player.
+     *
+     * @var boolean
+     */
+    protected $_validate = false;
+
+    /**
+     * Location of the .activation file.
+     *
+     * @var string
+     */
     protected $_filename;
+
+    /**
+     * Options of the Player_Validate class.
+     *
+     * @var array
+     */
     protected $_options;
 
+    /**
+     * Player_Validate class
+     * 
+     * Sets and gets the validation of the player
+     *
+     * @param  string $environment null
+     * @param  array $options null
+     * @return void
+     */
     public function __construct($environment = null, $options = null) {
 
-        $this->_filename = APPLICATION_PATH . '/.ac';
-
-        $this->_validate = false;
-        $this->setValidate();
-
-        //$this->view->activation_code = $senha;
-
-        if ($options != null) {
-
+        if ($options !== null) {
+            
             //@TODO
-        }
-
-
-        if ($this->isPost()) {
-
-            $data = $this->getPost();
-
-            $return = $this->accessURL('login', array('login' => $data['login'], 'senha' => $data['senha'], 'senhaAc' => $this->updateAc(), 'configurado' => $data['configurado']));
-
-            $return = array('dev' => $return['dev']);
-
-            $this->write_ini_file($return, $_SERVER['DOCUMENT_ROOT'] . 'public/config.ini', true);
-
-            $this->mensagens($return['dev']);
             
         } else {
 
-            if (($ini['inicializa'] == 1) && ($this->verifyconnection() == 'online')) {
-
-                $ini = parse_ini_file($_SERVER['DOCUMENT_ROOT'] . 'public/config.ini');
-
-                $return = $this->accessURL('config', array('idplayer' => $ini['idplayer'], 'login' => $ini['login']));
-
-                $return = array('dev' => $return['dev']);
-
-                $this->accessURL('ultimoacesso', array('idplayer' => $ini['idplayer']));
-
-                $this->write_ini_file($return, $_SERVER['DOCUMENT_ROOT'] . 'public/config.ini', true);
-
-                $this->redirect('/playlist/index/');
-                
-            }
+            $this->_filename = APPLICATION_PATH . '/.activation';
             
         }
+
+        $this->setValidate();
         
     }
 
+    /**
+     * Gets the player validation status.
+     *
+     * @return boolean
+     */
     public function getValidate() {
-
+        
         return $this->_validate;
         
     }
 
+    /**
+     * Sets the player validation to activation file.
+     *
+     * @return boolean
+     */
     public function setValidate() {
-
-        if ($this->_activation == null || !file_exists($this->_filename)) {
-
-            $this->setActivation();
-            
-        } else {
-
-            $this->getActivation();
-            
-        }
 
         return $this->_validate = true;
         
     }
 
-    public static function getActivation() {
+    /**
+     * Gets the player activation code from the .activation filename.
+     *
+     * @return string
+     */
+    public function getActivation() {
+        
+        if(!$this->_activation) {
+            
+            if (!file_exists($this->_filename)) {
 
-        $fopen = fopen($this->_filename, 'r');
+                $this->setActivation();
 
-        if ($fopen) {
+            } else {
 
-            while (!feof($fopen)) {
+                $fopen = fopen($this->_filename, 'r');
 
-                $fgets = fgets($fopen);
-                $pass = $fgets;
+                if ($fopen) {
+
+                    while (!feof($fopen)) {
+
+                        $fgets = fgets($fopen);
+                        $pass = $fgets;
+                    }
+
+                    fclose($fopen);
+                }
+
+                $this->_activation = $pass;
+
             }
-
-            fclose($fopen);
+            
         }
 
-        return $this->_activation = $pass;
-        
+        return $this->_activation;
+
     }
 
+    /**
+     * Sets the player activation code and writes in the .activation filename.
+     *
+     * @return string
+     */
     public function setActivation() {
 
         $pass = $this->_setCode();
@@ -110,6 +139,11 @@ class Player_Validate {
         
     }
 
+    /**
+     * Generate the activation code.
+     *
+     * @return string
+     */
     protected function _setCode() {
 
         $return = null;

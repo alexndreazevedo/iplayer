@@ -1,21 +1,23 @@
 <?php
 
+header('Content-Type: text/html; charset=utf-8');
+
 define('REAL_PATH', realpath(dirname(__FILE__)));
 
 defined('APPLICATION_PATH') ||
-    define('APPLICATION_PATH', realpath(dirname(__FILE__) . '/application'));
+    define('APPLICATION_PATH', realpath(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'application'));
 
 defined('APPLICATION_ENV') ||
-    define('APPLICATION_ENV', (getenv('APPLICATION_ENV') ? getenv('APPLICATION_ENV') : 'production'));
+    define('APPLICATION_ENV', (file_exists('.environment') ? 'development' : 'production'));
 
-set_include_path(implode(PATH_SEPARATOR, array(realpath(REAL_PATH . '/library'), get_include_path())));
+set_include_path(implode(PATH_SEPARATOR, array(realpath(REAL_PATH . DIRECTORY_SEPARATOR . 'library'), get_include_path())));
 
-require_once 'Player/Application.php';
+require_once 'Player.php';
 
-$player = new Player_Application(
+$player = new Player(
     
     APPLICATION_ENV,
-    APPLICATION_PATH . '/config/config.ini'
+    APPLICATION_PATH . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.ini'
     
 );
 

@@ -1,8 +1,19 @@
 <?php
 
+/**
+ * Player_Convert
+ * 
+ * Converts values
+ */
 class Player_Convert
 {
     
+    /**
+     * Convert a values to array
+     *
+     * @param  array $params null
+     * @return array
+     */
     public static function toArray($params) {
         
         $return = array();
@@ -19,7 +30,7 @@ class Player_Convert
             
             foreach ($params as $key => $value) {
 
-                $return[$key] = $this->toArray($value);
+                $return[$key] = self::toArray($value);
 
             }
 
@@ -29,137 +40,180 @@ class Player_Convert
         
     }
     
-    public static function toXML($array, $arquivo) {
-        
-        //@TODO
+    /**
+     * Convert a values to XML
+     *
+     * @param  array $params array
+     * @param  string $filename null
+     * @return boolean
+     */
+    public static function toXML($params = array(), $filename = null) {
              
-        /*
-        if (is_array($array)) {
+        if (is_array($params)) {
 
-            function create_tag($XML, $array) {
-                foreach ($array as $tag_name => $value) {
-                    $tag_name = is_numeric($tag_name) ? "_" . $tag_name : $tag_name;
+            function tag($XML, $params) {
+                
+                foreach ($params as $key => $value) {
+                    
+                    $key = (is_numeric($key)) ? '_' . $key : $key;
 
                     if (is_array($value)) {
-                        $XML->startElement($tag_name);
-                        create_tag($XML, $value);
+                        
+                        $XML->startElement($key);
+                        tag($XML, $value);
+                        
                     } else {
-                        $XML->writeElement($tag_name, $value);
+                        
+                        $XML->writeElement($key, $value);
+                        
                     }
+                    
                 }
+                
                 $XML->endElement();
+                
             }
 
             $XML = new XMLWriter();
-//                $XML->openMemory();
-            $XML->openURI($arquivo);
+            
+            $XML->openURI($filename);
             $XML->startDocument('1.0', 'UTF-8');
-            create_tag($XML, $array);
+            
+            tag($XML, $params);
+            
             $XML->endDocument();
-//                $XML->flush();
+            
             sleep(10);
+            
             return true;
-//                echo $XML->outputMemory(true);
-//                return utf8_encode();
-//				sleep(5);
+            
         } else {
+            
             return false;
+            
         }
-        */
         
     }
     
-    public static function getIni($params) {
+    /**
+     * Read a .ini file.
+     *
+     * @param  string $params null
+     * @return array
+     */
+    public static function getIni($params = null) {
         
         return parse_ini_file($params);
         
     }
     
-    public static function setIni($assoc_arr, $path, $has_sections=FALSE) {
+    /**
+     * Write a .ini file.
+     *
+     * @param  array $params array
+     * @param  string $path null
+     * @param  string $level -1
+     * @param  string $result false
+     * @return mixed
+     */
+    public static function setIni($params = array(), $path = null, $level = -1, $result = false) {
         
-        $content = "";
+        //@TODO
         
-        if ($has_sections) {
+        $return = '';
+        $level++;
+
+        foreach ($params as $key => $value) {
             
-            foreach ($assoc_arr as $key => $elem) {
-                
-                $content .= "[" . $key . "]\n";
-                
-                foreach ($elem as $key2 => $elem2) {
-                    
-                    if (is_array($elem2)) {
-                        
-                        for ($i = 0; $i < count($elem2); $i++) {
-                            
-                            $content .= $key2 . "[] = \"" . $elem2[$i] . "\"\n";
-                            
-                        }
-                        
-                    } else if ($elem2 == "") {
-                        
-                        $content .= $key2 . " = \n";
-                        
-                    } else {
-                        
-                        $content .= $key2 . " = \"" . $elem2 . "\"\n";
-                        
-                    }
+            if (is_array($value)) {
+
+                if($level == 0) {
+
+                    $return .= '[' . $key . ']' . "\n";
+
                 }
+
+                if(count($value) > 1) {
+
+                    $return .= self::setIni($value, $path, $level);
+                    
+                } else {
+                    
+                    $return .= $key . ' = "' . self::setIni($value, $path, $level) . '"' . "\n";
+                    
+                }
+
+            } else if ($value == '') {
+
+                $return .= $key;
+
+            } else {
+
+                $return .= $value;
+
+            }
+
+        }
+
+        if($level == 0) {
+
+            $handle = fopen($path, 'w');
+
+            if (!$handle) {
+
+                return false;
+
+            }
+
+            if (!fwrite($handle, $return)) {
+
+                return false;
+
+            }
+
+            fclose($handle);
+            
+            if($result) {
+        
+                return $return;
+                
+            } else {
+            
+                return true;
                 
             }
             
         } else {
             
-            foreach ($assoc_arr as $key => $elem) {
-                
-                if (is_array($elem)) {
-                    
-                    for ($i = 0; $i < count($elem); $i++) {
-                        
-                        $content .= $key2 . "[] = \"" . $elem[$i] . "\"\n";
-                        
-                    }
-                    
-                } else if ($elem == "") {
-                    
-                    $content .= $key2 . " = \n";
-                    
-                } else {
-                    
-                    $content .= $key2 . " = \"" . $elem . "\"\n";
-                    
-                }
-                
-            }
+            return $return;
             
         }
-
-        if (!$handle = fopen($path, 'w')) {
-            
-            return false;
-            
-        }
-        
-        if (!fwrite($handle, $content)) {
-
-            return false;
-
-        }
-
-        fclose($handle);
-        return true;
         
     }
     
-    public static function getJson($params) {
+    /**
+     * Decode a Json file to array;
+     *
+     * @param  mixed $params null
+     * @param  boolean $options true
+     * @return array
+     */
+    public static function getJson($params = null, $options = true) {
 
         return json_decode($params);
         
     }
     
-    public static function setJson($params) {
+    /**
+     * Encode a array to Json file;
+     *
+     * @param  mixed $params null
+     * @param  int $params [optional]
+     * @return string
+     */
+    public static function setJson($params = null, $options = null) {
 
-        return json_encode($params);
+        return json_encode($params, $options);
         
     }
     
