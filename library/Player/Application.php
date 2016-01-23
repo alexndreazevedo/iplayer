@@ -147,6 +147,40 @@ class Player_Application
                     
                 ),
                 
+                'player'  => array(
+                    
+                    'id'        => 'idplayer',
+                    'name'      => 'nome',
+                    'screen'    => 'player',
+                    'sector'    => 'idponto',
+                    'code'      => 'senhaAc',
+                    'status'    => 'configurado',
+                    
+                ),
+                
+                'user'  => array(
+                    
+                    'id'        => 'cliente',
+                    'login'     => 'login',
+                    'password'  => 'senha',
+                    'name'      => 'nomecliente',
+                    'category'  => 'segmento',
+                    'sector'    => 'idponto',
+                    
+                ),
+                
+                'settings'  => array(
+                    
+                    'start'     => 'hrentradaplayer',
+                    'end'       => 'hrsaidaplayer',
+                    'width'     => 'resolucaolar',
+                    'height'    => 'resolucaoalt',
+                    'duration'  => 'tempoloop',
+                    'off'       => 'deslautomaticoplayer',
+                    'status'    => 'inativar',
+                    
+                ),
+                
             )
             
         );
@@ -237,7 +271,15 @@ class Player_Application
     public function getConfigFile()
     {
         
-        return $this->_options['file'];
+        if(isset($this->_options['file'])) {
+        
+            return $this->_options['file'];
+            
+        } else {
+            
+            return false;
+            
+        }
         
     }
 
@@ -297,7 +339,7 @@ class Player_Application
     public function setSession($session = null)
     {
         
-        // @TODO
+        //@TODO
         
     }
     
@@ -424,9 +466,24 @@ class Player_Application
      *
      * @return string
      */
-    public function setInstall()
+    public function setInstall($connection, $validate)
     {
-        return $this->__runInstall();
+        
+        $url        = $this->getFlag('url');
+        $status     = $this->getFlag('status');
+        $player     = $this->getFlag('player');
+        $user       = $this->getFlag('user');
+        
+        if($this->__runInstall($connection, $validate, $url, $status, $player, $user)){
+            
+            return true;
+
+        } else {
+            
+            return false;
+            
+        }
+        
     }
     
     /**
@@ -434,12 +491,39 @@ class Player_Application
      *
      * @return string
      */
-    private function __runInstall()
+    private function __runInstall($connection, $validate, $url, $status, $player, $user)
     {
+
+        $params = array(
+
+            $user['login']      => '',
+            $user['password']   => '',
+            $player['code']     => $validate->getActivation(),
+            $player['status']   => 1
+
+        );
+
+        $login = $connection->loadConnection($this->getEnvironment(), $url['login'], $params);
+
+        $ini = Player_Convert::setIni($login, $this->getConfigFile(), true);
+
+        $params = array(
+
+            $player['id']   =>$ini[$player['id']]
+
+        );
+
+        $access = $connection->loadConnection($this->getEnvironment(), $url['access'], $params);
         
-        print "\n" . 'run install';
-        
-        //@TODO
+        if($ini[$status['active']]) {
+            
+            return true;
+
+        } else {
+            
+            return false;
+            
+        }
         
     }
 

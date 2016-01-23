@@ -13,14 +13,7 @@ class Player_Validate
      *
      * @var string
      */
-    protected $_activation;
-
-    /**
-     * Check the validation of the player.
-     *
-     * @var boolean
-     */
-    protected $_validate = false;
+    protected $_activation = false;
 
     /**
      * Location of the .activation file.
@@ -53,33 +46,11 @@ class Player_Validate
             
         } else {
 
-            $this->_filename = APPLICATION_PATH . '/.activation';
+            $this->_filename = CONFIG_PATH . DIRECTORY_SEPARATOR . '.activation';
             
         }
 
-        $this->setValidate();
-        
-    }
-
-    /**
-     * Gets the player validation status.
-     *
-     * @return boolean
-     */
-    public function getValidate() {
-        
-        return $this->_validate;
-        
-    }
-
-    /**
-     * Sets the player validation to activation file.
-     *
-     * @return boolean
-     */
-    public function setValidate() {
-
-        return $this->_validate = true;
+        $this->getActivation();
         
     }
 

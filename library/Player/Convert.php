@@ -116,76 +116,82 @@ class Player_Convert
      * @param  string $result false
      * @return mixed
      */
-    public static function setIni($params = array(), $path = null, $level = -1, $result = false) {
+    public static function setIni($params = array(), $path = null, $result = false, $level = -1) {
         
-        //@TODO
-        
-        $return = '';
-        $level++;
-
-        foreach ($params as $key => $value) {
+        if($params && $path) {
             
-            if (is_array($value)) {
+            $return = '';
+            $level++;
 
-                if($level == 0) {
+            foreach ($params as $key => $value) {
 
-                    $return .= '[' . $key . ']' . "\n";
+                if (is_array($value)) {
 
-                }
+                    if($level == 0) {
 
-                if(count($value) > 1) {
+                        $return .= '[' . $key . ']' . "\n";
 
-                    $return .= self::setIni($value, $path, $level);
-                    
+                    }
+
+                    if(count($value) > 1) {
+
+                        $return .= self::setIni($value, $path, $result, $level);
+
+                    } else {
+
+                        $return .= $key . ' = "' . self::setIni($value, $path, $result, $level) . '"' . "\n";
+
+                    }
+
+                } else if ($value == '') {
+
+                    $return .= $key;
+
                 } else {
-                    
-                    $return .= $key . ' = "' . self::setIni($value, $path, $level) . '"' . "\n";
-                    
+
+                    $return .= $value;
+
                 }
 
-            } else if ($value == '') {
+            }
 
-                $return .= $key;
+            if($level == 0) {
+
+                $handle = fopen($path, 'w');
+
+                if (!$handle) {
+
+                    return false;
+
+                }
+
+                if (!fwrite($handle, $return)) {
+
+                    return false;
+
+                }
+
+                fclose($handle);
+
+                if($result) {
+
+                    return $return;
+
+                } else {
+
+                    return true;
+
+                }
 
             } else {
 
-                $return .= $value;
-
-            }
-
-        }
-
-        if($level == 0) {
-
-            $handle = fopen($path, 'w');
-
-            if (!$handle) {
-
-                return false;
-
-            }
-
-            if (!fwrite($handle, $return)) {
-
-                return false;
-
-            }
-
-            fclose($handle);
-            
-            if($result) {
-        
                 return $return;
-                
-            } else {
-            
-                return true;
-                
+
             }
             
         } else {
             
-            return $return;
+            return false;
             
         }
         

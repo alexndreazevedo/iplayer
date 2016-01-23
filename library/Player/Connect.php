@@ -11,14 +11,14 @@ class Player_Connect
     /**
      * Protocol access server.
      *
-     * @var string
+     * @var string 'http'
      */
     protected $_protocol = 'http';
 
     /**
      * Subdomain of server name.
      *
-     * @var string 'testes'
+     * @var string 'api'
      */
     protected $_subdomain = 'api';
 
